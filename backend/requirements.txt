@@ -1,0 +1,14 @@
+# Firebase y Base de Datos
+firebase-admin==6.4.0
+
+# Modelos y Validación de Datos
+pydantic==2.6.0
+pydantic[email]==2.6.0
+email-validator==2.1.0
+
+# Utilidades
+python-dotenv==1.0.0
+python-dateutil==2.8.2
+
+# Seguridad (opcional - si necesitas hash adicional)
+passlib[bcrypt]==1.7.4

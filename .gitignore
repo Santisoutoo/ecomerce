@@ -208,3 +208,19 @@ __marimo__/
 
 
 proyecto_apps_G11.pdf
+
+# SportStyle Store - Specific Files
+# Firebase credentials (NEVER commit these!)
+firebase-credentials.json
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# Environment variables
+.env
+
+# Streamlit cache
+.streamlit/
+
+# Data files (optional - exclude large seed files if needed)
+# data/*.json
+# data/*.geojson
