@@ -1,3 +1,7 @@
+# Framework Web
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
 # Firebase y Base de Datos
 firebase-admin==6.4.0
 
@@ -6,9 +10,10 @@ pydantic==2.6.0
 pydantic[email]==2.6.0
 email-validator==2.1.0
 
+# Seguridad y JWT
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
 # Utilidades
 python-dotenv==1.0.0
 python-dateutil==2.8.2
-
-# Seguridad (opcional - si necesitas hash adicional)
-passlib[bcrypt]==1.7.4

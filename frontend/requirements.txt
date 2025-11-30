@@ -1,6 +1,9 @@
 # Framework Web
 streamlit==1.31.0
 
+# HTTP Requests para comunicación con backend
+requests==2.31.0
+
 # Procesamiento de Imágenes
 Pillow==10.2.0
 
