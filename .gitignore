@@ -217,6 +217,7 @@ serviceAccountKey.json
 
 # Environment variables
 .env
+firebase-credentials.json
 
 # Streamlit cache
 .streamlit/
