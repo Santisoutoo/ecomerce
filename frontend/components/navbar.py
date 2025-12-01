@@ -46,10 +46,16 @@ def render_navbar():
         """, unsafe_allow_html=True)
 
     with col2:
-        # Menú de navegación
+        # Obtener cantidad de items en el carrito
+        cart = st.session_state.get('cart', [])
+        cart_count = len(cart)
+
+        # Menú de navegación con contador de carrito
+        cart_label = f"🛒 Carrito ({cart_count})" if cart_count > 0 else "🛒 Carrito"
+
         selected = st.segmented_control(
             "Navegación",
-            options=["🏠 Home", "🛍️ Catálogo", "🛒 Carrito", "👤 Mi Cuenta"],
+            options=["🏠 Home", "🛍️ Catálogo", cart_label, "👤 Mi Cuenta"],
             default="🏠 Home",
             label_visibility="collapsed"
         )
@@ -59,7 +65,7 @@ def render_navbar():
             page_map = {
                 "🏠 Home": "home",
                 "🛍️ Catálogo": "catalog",
-                "🛒 Carrito": "cart",
+                cart_label: "cart",
                 "👤 Mi Cuenta": "account"
             }
             st.session_state[SESSION_KEYS["current_page"]] = page_map[selected]
@@ -75,11 +81,32 @@ def render_navbar():
         </div>
         """, unsafe_allow_html=True)
 
+        # Botón de admin (solo para administradores)
+        if is_admin_user(user_email):
+            if st.button("📊 Panel Admin", use_container_width=True, type="primary"):
+                st.session_state[SESSION_KEYS["current_page"]] = "admin"
+                st.rerun()
+
         # Botón de cerrar sesión
         if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
             logout_user()
 
     st.markdown("<hr style='margin: 1rem 0; border-color: #2d2d3a;'>", unsafe_allow_html=True)
+
+
+def is_admin_user(user_email: str) -> bool:
+    """
+    Verifica si el usuario es administrador.
+
+    Args:
+        user_email: Email del usuario
+
+    Returns:
+        bool: True si es admin, False en caso contrario
+    """
+    # Mock: Por ahora, cualquier email que contenga "admin" es admin
+    # En producción, esto vendría de la base de datos
+    return "admin" in user_email.lower()
 
 
 def logout_user():
