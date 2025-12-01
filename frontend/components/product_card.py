@@ -18,8 +18,13 @@ def render_product_card(product: dict, key_prefix: str = ""):
     has_stock = product.get("stock", 0) > 0
     stock_class = "in-stock" if has_stock else "out-of-stock"
 
-    # HTML de la tarjeta
-    card_html = f"""
+    # Construir HTML usando lista para evitar f-strings anidados y strings vacíos
+    html_parts = []
+
+    # Abrir div principal y div de imagen
+    imagen_url = product.get('imagen_url', 'https://via.placeholder.com/400')
+    product_name = product.get('name', 'Producto')
+    html_parts.append(f'''
     <div class="product-card {stock_class}" style="
         background: #181633;
         border: 1px solid #2d2d3a;
@@ -29,7 +34,6 @@ def render_product_card(product: dict, key_prefix: str = ""):
         cursor: pointer;
         height: 100%;
     ">
-        <!-- Imagen del producto -->
         <div style="
             position: relative;
             width: 100%;
@@ -39,7 +43,7 @@ def render_product_card(product: dict, key_prefix: str = ""):
             background: #1e1b4b;
             margin-bottom: 1rem;
         ">
-            <img src="{product.get('imagen_url', 'https://via.placeholder.com/400')}"
+            <img src="{imagen_url}"
                  style="
                     position: absolute;
                     top: 0;
@@ -48,24 +52,28 @@ def render_product_card(product: dict, key_prefix: str = ""):
                     height: 100%;
                     object-fit: cover;
                  "
-                 alt="{product.get('name', 'Producto')}">
+                 alt="{product_name}">
+    ''')
 
-            <!-- Badge de stock -->
-            {'<div style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">AGOTADO</div>' if not has_stock else ''}
+    # Badge de agotado (solo si no hay stock)
+    if not has_stock:
+        html_parts.append('<div style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">AGOTADO</div>')
 
-            <!-- Badge de personalización -->
-            {f'<div style="position: absolute; top: 10px; left: 10px; background: #a78bfa; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">✨ Personalizable +{product.get("precio_personalizacion", 0):.2f}€</div>' if product.get('permite_personalizacion') else ''}
-        </div>
+    # Badge de personalizable (solo si permite personalización)
+    if product.get('permite_personalizacion'):
+        precio_pers = product.get("precio_personalizacion", 0)
+        html_parts.append(f'<div style="position: absolute; top: 10px; left: 10px; background: #a78bfa; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">✨ Personalizable +{precio_pers:.2f}€</div>')
 
-        <!-- Información del producto -->
-        <div style="padding: 0 0.5rem;">
-            <!-- Equipo -->
-            <p style="color: #9ca3af; font-size: 0.875rem; margin: 0 0 0.5rem 0;">
-                {product.get('equipo', 'Equipo')}
-            </p>
+    # Cerrar div de imagen y abrir div de información
+    html_parts.append('</div><div style="padding: 0 0.5rem;">')
 
-            <!-- Nombre del producto -->
-            <h3 style="
+    # Equipo
+    equipo = product.get('equipo', 'Equipo')
+    html_parts.append(f'<p style="color: #9ca3af; font-size: 0.875rem; margin: 0 0 0.5rem 0;">{equipo}</p>')
+
+    # Nombre del producto
+    nombre = product.get('name', 'Producto sin nombre')
+    html_parts.append(f'''<h3 style="
                 color: #ffffff;
                 font-size: 1rem;
                 margin: 0 0 1rem 0;
@@ -75,12 +83,12 @@ def render_product_card(product: dict, key_prefix: str = ""):
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
-            ">
-                {product.get('name', 'Producto sin nombre')}
-            </h3>
+            ">{nombre}</h3>''')
 
-            <!-- Precio -->
-            <div style="
+    # Precio y stock
+    precio = product.get('precio', 0)
+    stock = product.get('stock', 0)
+    html_parts.append(f'''<div style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -91,23 +99,27 @@ def render_product_card(product: dict, key_prefix: str = ""):
                         color: #a78bfa;
                         font-size: 1.5rem;
                         font-weight: 700;
-                    ">{product.get('precio', 0):.2f}€</span>
+                    ">{precio:.2f}€</span>
                 </div>
                 <div style="color: #9ca3af; font-size: 0.875rem;">
-                    Stock: {product.get('stock', 0)}
+                    Stock: {stock}
                 </div>
-            </div>
+            </div>''')
 
-            <!-- Tallas disponibles -->
-            <div style="margin-bottom: 1rem;">
+    # Tallas
+    tallas_html = "".join([f'<span style="background: #1e1b4b; color: #d1d5db; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">{talla}</span>' for talla in product.get('tallas', [])])
+    html_parts.append(f'''<div style="margin-bottom: 1rem;">
                 <p style="color: #9ca3af; font-size: 0.75rem; margin: 0 0 0.25rem 0;">Tallas:</p>
                 <div style="display: flex; gap: 0.25rem; flex-wrap: wrap;">
-                    {"".join([f'<span style="background: #1e1b4b; color: #d1d5db; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">{talla}</span>' for talla in product.get('tallas', [])])}
+                    {tallas_html}
                 </div>
-            </div>
-        </div>
-    </div>
-    """
+            </div>''')
+
+    # Cerrar divs
+    html_parts.append('</div></div>')
+
+    # Unir todas las partes
+    card_html = ''.join(html_parts)
 
     # CSS adicional para hover
     st.markdown("""
@@ -126,22 +138,22 @@ def render_product_card(product: dict, key_prefix: str = ""):
     # Renderizar la tarjeta
     st.markdown(card_html, unsafe_allow_html=True)
 
-    # Botones de acción
-    col1, col2 = st.columns(2)
+    # Botón para ver detalles del producto
+    if st.button(
+        "👁️ VER DETALLES",
+        key=f"{key_prefix}_view_{product.get('id')}",
+        use_container_width=True,
+        type="secondary"
+    ):
+        st.session_state["selected_product"] = product.get("id")
+        st.session_state["current_page"] = "product_detail"
+        st.rerun()
 
-    with col1:
-        if has_stock:
-            if st.button("🛒 Agregar", key=f"{key_prefix}_add_{product.get('id')}", use_container_width=True):
-                st.session_state[f"add_to_cart_{product.get('id')}"] = True
-                st.toast(f"✅ {product.get('name')} agregado al carrito", icon="🛒")
-        else:
-            st.button("❌ Agotado", key=f"{key_prefix}_sold_out_{product.get('id')}", use_container_width=True, disabled=True)
-
-    with col2:
-        if st.button("👁️ Ver", key=f"{key_prefix}_view_{product.get('id')}", use_container_width=True, type="secondary"):
-            st.session_state["selected_product"] = product.get("id")
-            st.session_state["current_page"] = "product_detail"
-            st.rerun()
+    # Botón de agregar al carrito
+    if has_stock:
+        if st.button("🛒 Agregar al Carrito", key=f"{key_prefix}_add_{product.get('id')}", use_container_width=True, type="primary"):
+            st.session_state[f"add_to_cart_{product.get('id')}"] = True
+            st.toast(f"✅ {product.get('name')} agregado al carrito", icon="🛒")
 
 
 def render_product_grid(products: list, key_prefix: str = "grid"):

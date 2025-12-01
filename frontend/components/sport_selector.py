@@ -4,7 +4,7 @@ Permite al usuario elegir entre Fútbol, Baloncesto y Fórmula 1.
 """
 
 import streamlit as st
-from frontend.services.product_service import ProductService
+from services.product_service import ProductService
 
 
 def render_sport_selector():
@@ -73,12 +73,12 @@ def render_sport_selector():
             </div>
             """, unsafe_allow_html=True)
 
-            # Botón para seleccionar
+            # Botón para seleccionar el deporte
             if st.button(
-                f"{'✓ ' if is_selected else ''}Seleccionar",
+                "SELECCIONAR",
                 key=f"sport_btn_{sport['id']}",
                 use_container_width=True,
-                type="primary" if is_selected else "secondary"
+                type="secondary"
             ):
                 st.session_state["selected_sport"] = sport["id"]
                 st.session_state["selected_team"] = None  # Reset team selection
