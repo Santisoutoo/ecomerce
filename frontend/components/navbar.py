@@ -4,8 +4,8 @@ Muestra el menú, usuario actual y opciones de navegación.
 """
 
 import streamlit as st
-from frontend.services.auth_service import AuthService
-from frontend.config import SESSION_KEYS
+from services.auth_service import AuthService
+from config import SESSION_KEYS
 
 
 def render_navbar():
@@ -49,26 +49,57 @@ def render_navbar():
         # Obtener cantidad de items en el carrito
         cart = st.session_state.get('cart', [])
         cart_count = len(cart)
+        user_email = st.session_state.get(SESSION_KEYS["user_email"], "")
 
         # Menú de navegación con contador de carrito
         cart_label = f"🛒 Carrito ({cart_count})" if cart_count > 0 else "🛒 Carrito"
 
-        selected = st.segmented_control(
+        # Agregar opción de admin si el usuario es administrador
+        if is_admin_user(user_email):
+            options = ["🏠 Home", "🛍️ Catálogo", cart_label, "👤 Mi Cuenta", "📊 Admin"]
+        else:
+            options = ["🏠 Home", "🛍️ Catálogo", cart_label, "👤 Mi Cuenta"]
+
+        # Obtener la página actual para mantener la selección
+        current_page = st.session_state.get(SESSION_KEYS["current_page"], "home")
+
+        # Mapeo de páginas a opciones del radio
+        page_to_option = {
+            "home": "🏠 Home",
+            "catalog": "🛍️ Catálogo",
+            "cart": cart_label,
+            "account": "👤 Mi Cuenta",
+            "admin": "📊 Admin"
+        }
+
+        # Obtener el índice de la opción actual
+        current_option = page_to_option.get(current_page, "🏠 Home")
+        if current_option in options:
+            default_index = options.index(current_option)
+        else:
+            default_index = 0
+
+        selected = st.radio(
             "Navegación",
-            options=["🏠 Home", "🛍️ Catálogo", cart_label, "👤 Mi Cuenta"],
-            default="🏠 Home",
+            options=options,
+            index=default_index,
+            horizontal=True,
             label_visibility="collapsed"
         )
 
-        # Guardar la página seleccionada
+        # Guardar la página seleccionada solo si cambió
         if selected:
             page_map = {
                 "🏠 Home": "home",
                 "🛍️ Catálogo": "catalog",
                 cart_label: "cart",
-                "👤 Mi Cuenta": "account"
+                "👤 Mi Cuenta": "account",
+                "📊 Admin": "admin"
             }
-            st.session_state[SESSION_KEYS["current_page"]] = page_map[selected]
+            new_page = page_map.get(selected)
+            if new_page and new_page != current_page:
+                st.session_state[SESSION_KEYS["current_page"]] = new_page
+                st.rerun()
 
     with col3:
         # Información del usuario y logout
@@ -80,12 +111,6 @@ def render_navbar():
             📧 {user_email}
         </div>
         """, unsafe_allow_html=True)
-
-        # Botón de admin (solo para administradores)
-        if is_admin_user(user_email):
-            if st.button("📊 Panel Admin", use_container_width=True, type="primary"):
-                st.session_state[SESSION_KEYS["current_page"]] = "admin"
-                st.rerun()
 
         # Botón de cerrar sesión
         if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
