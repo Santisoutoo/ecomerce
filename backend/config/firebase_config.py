@@ -1,10 +1,10 @@
 """
 Configuración e inicialización de Firebase Admin SDK.
-Proporciona acceso a Firestore y Firebase Authentication.
+Proporciona acceso a Realtime Database y Firebase Authentication.
 """
 
 import firebase_admin
-from firebase_admin import credentials, auth, firestore
+from firebase_admin import credentials, auth, db
 from functools import lru_cache
 from .settings import FIREBASE_CREDENTIALS_PATH
 import os
@@ -28,10 +28,15 @@ def initialize_firebase():
         return _firebase_app
 
     try:
+        # Obtener URL de Realtime Database
+        database_url = os.getenv("FIREBASE_DATABASE_URL", "https://sportstyle-store-default-rtdb.europe-west1.firebasedatabase.app")
+
         # Opción 1: Usar archivo de credenciales JSON
         if FIREBASE_CREDENTIALS_PATH.exists():
             cred = credentials.Certificate(str(FIREBASE_CREDENTIALS_PATH))
-            _firebase_app = firebase_admin.initialize_app(cred)
+            _firebase_app = firebase_admin.initialize_app(cred, {
+                'databaseURL': database_url
+            })
             print(f"✅ Firebase initialized with credentials file: {FIREBASE_CREDENTIALS_PATH}")
 
         # Opción 2: Usar credenciales desde variables de entorno (producción)
@@ -48,7 +53,9 @@ def initialize_firebase():
                 "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
                 "client_x509_cert_url": os.getenv("FIREBASE_CLIENT_CERT_URL")
             })
-            _firebase_app = firebase_admin.initialize_app(cred)
+            _firebase_app = firebase_admin.initialize_app(cred, {
+                'databaseURL': database_url
+            })
             print("✅ Firebase initialized with environment variables")
 
         else:
@@ -64,17 +71,15 @@ def initialize_firebase():
         raise
 
 
-@lru_cache()
-def get_firestore_client():
+def get_database():
     """
-    Obtiene una instancia del cliente de Firestore.
-    Usa caché para evitar múltiples inicializaciones.
+    Obtiene una referencia a Firebase Realtime Database.
 
     Returns:
-        firestore.Client: Cliente de Firestore
+        db.Reference: Referencia a la raíz de la base de datos
     """
     initialize_firebase()
-    return firestore.client()
+    return db.reference()
 
 
 def get_auth_client():

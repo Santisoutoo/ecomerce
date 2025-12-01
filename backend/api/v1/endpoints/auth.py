@@ -4,18 +4,17 @@ Gestiona registro, login, logout y validación de usuarios con Firebase.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status
-from backend.models.auth import (
+from models.auth import (
     SignUpRequest,
     SignInRequest,
     TokenResponse,
     UserResponse,
     MessageResponse
 )
-from backend.core.security import create_access_token, get_current_user
-from backend.config.firebase_config import get_auth_client, get_firestore_client
-from firebase_admin import firestore
-from datetime import timedelta
-from backend.config.settings import ACCESS_TOKEN_EXPIRE_MINUTES
+from core.security import create_access_token, get_current_user
+from config.firebase_config import get_auth_client, get_database
+from datetime import datetime, timedelta
+from config.settings import ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -24,7 +23,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup(request: SignUpRequest):
     """
-    Registra un nuevo usuario en Firebase Authentication y Firestore.
+    Registra un nuevo usuario en Firebase Authentication y Realtime Database.
 
     Args:
         request: Datos del nuevo usuario (email, password, nombre, apellidos)
@@ -37,7 +36,7 @@ async def signup(request: SignUpRequest):
     """
     try:
         auth_client = get_auth_client()
-        db = get_firestore_client()
+        database = get_database()
 
         # Crear usuario en Firebase Authentication
         user = auth_client.create_user(
@@ -46,13 +45,13 @@ async def signup(request: SignUpRequest):
             display_name=f"{request.nombre} {request.apellidos}"
         )
 
-        # Crear documento del usuario en Firestore
+        # Crear datos del usuario en Realtime Database
         user_data = {
             "email": request.email,
             "nombre": request.nombre,
             "apellidos": request.apellidos,
             "telefono": request.telefono or "",
-            "fecha_registro": firestore.SERVER_TIMESTAMP,
+            "fecha_registro": datetime.now().isoformat(),
             "puntos_fidelizacion": 0,
             "es_admin": False,
             "activo": True,
@@ -60,7 +59,8 @@ async def signup(request: SignUpRequest):
             "direccion_envio": {}
         }
 
-        db.collection("users").document(user.uid).set(user_data)
+        # Guardar en /users/{uid}
+        database.child('users').child(user.uid).set(user_data)
 
         # Generar token JWT
         access_token = create_access_token(
@@ -75,9 +75,10 @@ async def signup(request: SignUpRequest):
             email=user.email
         )
 
-    except auth_client._http_client.exceptions.HttpError as e:
-        # Usuario ya existe
-        if "EMAIL_EXISTS" in str(e):
+    except Exception as e:
+        # Manejar errores de Firebase
+        error_msg = str(e).lower()
+        if "email" in error_msg and ("exists" in error_msg or "already" in error_msg):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered"
@@ -135,16 +136,11 @@ async def signin(request: SignInRequest):
             email=user.email
         )
 
-    except auth_client._http_client.exceptions.HttpError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
-        )
-
     except Exception as e:
+        # Capturar cualquier error de Firebase y retornar 401
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
+            detail="Invalid email or password"
         )
 
 

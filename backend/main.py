@@ -5,15 +5,15 @@ Configura rutas, middleware y CORS.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.config.settings import (
+from config.settings import (
     PROJECT_NAME,
     VERSION,
     DESCRIPTION,
     API_V1_PREFIX,
     ALLOWED_ORIGINS
 )
-from backend.api.v1.endpoints import auth
-from backend.config.firebase_config import initialize_firebase
+from api.v1.endpoints import auth
+from config.firebase_config import initialize_firebase
 
 
 # Inicializar Firebase al arrancar la aplicación
