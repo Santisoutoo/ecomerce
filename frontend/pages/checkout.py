@@ -1,0 +1,515 @@
+"""
+Página de checkout/pago.
+Proceso de finalización de compra con dirección de envío y pago simulado.
+"""
+
+import streamlit as st
+from datetime import datetime
+from frontend.config import SESSION_KEYS
+
+
+def render_checkout_page():
+    """
+    Renderiza la página de checkout con formularios de envío y pago.
+    """
+    st.markdown("# 💳 Checkout - Finalizar Compra")
+
+    # Verificar que haya datos de checkout
+    checkout_data = st.session_state.get('checkout_data')
+
+    if not checkout_data:
+        st.error("❌ No hay datos de checkout. Por favor, vuelve al carrito.")
+        if st.button("🛒 Volver al Carrito"):
+            st.session_state[SESSION_KEYS["current_page"]] = "cart"
+            st.rerun()
+        return
+
+    # Inicializar paso del checkout
+    if 'checkout_step' not in st.session_state:
+        st.session_state['checkout_step'] = 1
+
+    # Progress bar
+    render_progress_bar(st.session_state['checkout_step'])
+
+    # Renderizar el paso correspondiente
+    step = st.session_state['checkout_step']
+
+    if step == 1:
+        render_review_order_step(checkout_data)
+    elif step == 2:
+        render_shipping_address_step()
+    elif step == 3:
+        render_payment_method_step()
+
+
+def render_progress_bar(current_step: int):
+    """
+    Renderiza la barra de progreso del checkout.
+
+    Args:
+        current_step: Paso actual (1-3)
+    """
+    steps = [
+        {"num": 1, "title": "Revisión"},
+        {"num": 2, "title": "Envío"},
+        {"num": 3, "title": "Pago"}
+    ]
+
+    cols = st.columns(len(steps))
+
+    for i, step in enumerate(steps):
+        with cols[i]:
+            is_active = step["num"] <= current_step
+            is_current = step["num"] == current_step
+
+            color = "#a78bfa" if is_active else "#2d2d3a"
+            border_color = "#a78bfa" if is_current else color
+
+            st.markdown(f"""
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="
+                    width: 50px;
+                    height: 50px;
+                    background: {color};
+                    border: 3px solid {border_color};
+                    border-radius: 50%;
+                    margin: 0 auto 0.5rem auto;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                ">
+                    {step["num"]}
+                </div>
+                <p style="color: {color}; margin: 0; font-size: 0.9rem; font-weight: 600;">
+                    {step["title"]}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("<hr style='margin: 1rem 0; border-color: #2d2d3a;'>", unsafe_allow_html=True)
+
+
+def render_review_order_step(checkout_data: dict):
+    """
+    Paso 1: Revisión del pedido.
+
+    Args:
+        checkout_data: Datos del pedido
+    """
+    st.markdown("## 📦 Paso 1: Revisa tu Pedido")
+
+    # Layout de 2 columnas
+    col_left, col_right = st.columns([2, 1], gap="large")
+
+    with col_left:
+        st.markdown("### 🛍️ Productos")
+
+        # Mostrar cada producto
+        for item in checkout_data['cart']:
+            render_checkout_item(item)
+
+    with col_right:
+        st.markdown("### 💰 Resumen")
+
+        # Resumen de precios
+        subtotal = checkout_data['subtotal']
+        shipping = checkout_data['shipping']
+        discount = checkout_data['discount']
+        total = checkout_data['total']
+
+        st.markdown(f"""
+        <div style="
+            background: #181633;
+            border: 2px solid #2d2d3a;
+            border-radius: 12px;
+            padding: 1.5rem;
+        ">
+            <div style="margin-bottom: 0.75rem;">
+                <span style="color: #d1d5db;">Subtotal:</span>
+                <span style="color: #ffffff; float: right; font-weight: 600;">{subtotal:.2f}€</span>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <span style="color: #d1d5db;">Envío:</span>
+                <span style="color: #ffffff; float: right; font-weight: 600;">{shipping:.2f}€</span>
+            </div>
+            {f'<div style="margin-bottom: 0.75rem;"><span style="color: #10b981;">Descuento:</span><span style="color: #10b981; float: right; font-weight: 600;">-{discount:.2f}€</span></div>' if discount > 0 else ''}
+            <hr style="margin: 1rem 0; border-color: #2d2d3a;">
+            <div>
+                <span style="color: #ffffff; font-size: 1.25rem; font-weight: 700;">TOTAL:</span>
+                <span style="color: #a78bfa; float: right; font-size: 1.5rem; font-weight: 700;">{total:.2f}€</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Puntos a ganar
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #1e1b4b 0%, #2d2d3a 100%);
+            border: 1px solid #a78bfa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        ">
+            <p style="color: #a78bfa; font-size: 0.875rem; margin: 0 0 0.25rem 0;">
+                ⭐ Ganarás con esta compra
+            </p>
+            <p style="color: #ffffff; font-size: 1.5rem; font-weight: 700; margin: 0;">
+                {checkout_data['points_to_earn']} puntos
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Botones de navegación
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col1:
+        if st.button("⬅️ Volver al Carrito", use_container_width=True):
+            st.session_state[SESSION_KEYS["current_page"]] = "cart"
+            st.rerun()
+
+    with col3:
+        if st.button("Siguiente ➡️", type="primary", use_container_width=True):
+            st.session_state['checkout_step'] = 2
+            st.rerun()
+
+
+def render_checkout_item(item: dict):
+    """
+    Renderiza un item del checkout (resumen).
+
+    Args:
+        item: Diccionario del item
+    """
+    personalizacion = item.get('personalizacion')
+    cantidad = item.get('cantidad', 1)
+    precio_total = (item.get('precio_unitario', 0) + item.get('precio_personalizacion', 0)) * cantidad
+
+    st.markdown(f"""
+    <div style="
+        background: #181633;
+        border: 1px solid #2d2d3a;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    ">
+        <img src="{item.get('imagen_url', 'https://via.placeholder.com/80')}"
+             style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;"
+             alt="{item.get('name', 'Producto')}">
+        <div style="flex: 1;">
+            <p style="color: #a78bfa; font-size: 0.75rem; margin: 0;">{item.get('equipo', '')}</p>
+            <p style="color: #ffffff; font-weight: 600; margin: 0.25rem 0;">{item.get('name', '')}</p>
+            <p style="color: #9ca3af; font-size: 0.875rem; margin: 0;">
+                Talla: {item.get('talla', '-')} | Cantidad: {cantidad}
+            </p>
+            {f"<p style='color: #a78bfa; font-size: 0.75rem; margin: 0.25rem 0;'>✨ {personalizacion.get('nombre', '')} #{personalizacion.get('numero', '')}</p>" if personalizacion else ""}
+        </div>
+        <div>
+            <p style="color: #a78bfa; font-size: 1.25rem; font-weight: 700; margin: 0;">
+                {precio_total:.2f}€
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_shipping_address_step():
+    """
+    Paso 2: Dirección de envío.
+    """
+    st.markdown("## 📦 Paso 2: Dirección de Envío")
+
+    # Inicializar datos de dirección si no existen
+    if 'shipping_address' not in st.session_state:
+        st.session_state['shipping_address'] = {}
+
+    with st.form("shipping_form"):
+        col1, col2 = st.columns(2)
+
+        with col1:
+            nombre = st.text_input(
+                "Nombre completo *",
+                value=st.session_state.get('shipping_address', {}).get('nombre', ''),
+                placeholder="Juan Pérez"
+            )
+
+        with col2:
+            telefono = st.text_input(
+                "Teléfono *",
+                value=st.session_state.get('shipping_address', {}).get('telefono', ''),
+                placeholder="612345678",
+                max_chars=9
+            )
+
+        direccion = st.text_input(
+            "Dirección (Calle y número) *",
+            value=st.session_state.get('shipping_address', {}).get('direccion', ''),
+            placeholder="Calle Mayor 123, 2ºB"
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            ciudad = st.text_input(
+                "Ciudad *",
+                value=st.session_state.get('shipping_address', {}).get('ciudad', ''),
+                placeholder="Madrid"
+            )
+
+        with col2:
+            # Provincias de España
+            provincias = [
+                "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila",
+                "Badajoz", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria",
+                "Castellón", "Ciudad Real", "Córdoba", "Cuenca", "Gerona", "Granada",
+                "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Islas Baleares",
+                "Jaén", "La Coruña", "La Rioja", "Las Palmas", "León", "Lérida",
+                "Lugo", "Madrid", "Málaga", "Murcia", "Navarra", "Orense", "Palencia",
+                "Pontevedra", "Salamanca", "Santa Cruz de Tenerife", "Segovia",
+                "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia",
+                "Valladolid", "Vizcaya", "Zamora", "Zaragoza"
+            ]
+
+            current_provincia = st.session_state.get('shipping_address', {}).get('provincia', '')
+            provincia_index = provincias.index(current_provincia) if current_provincia in provincias else 0
+
+            provincia = st.selectbox(
+                "Provincia *",
+                options=provincias,
+                index=provincia_index
+            )
+
+        codigo_postal = st.text_input(
+            "Código Postal *",
+            value=st.session_state.get('shipping_address', {}).get('codigo_postal', ''),
+            placeholder="28001",
+            max_chars=5
+        )
+
+        # Botones del formulario
+        col1, col2, col3 = st.columns([1, 2, 1])
+
+        with col1:
+            back_button = st.form_submit_button("⬅️ Volver", use_container_width=True)
+
+        with col3:
+            submit_button = st.form_submit_button("Siguiente ➡️", type="primary", use_container_width=True)
+
+        # Procesar formulario
+        if back_button:
+            st.session_state['checkout_step'] = 1
+            st.rerun()
+
+        if submit_button:
+            # Validar campos obligatorios
+            if not all([nombre, telefono, direccion, ciudad, provincia, codigo_postal]):
+                st.error("⚠️ Por favor completa todos los campos obligatorios")
+            elif len(telefono) != 9 or not telefono.isdigit():
+                st.error("⚠️ El teléfono debe tener 9 dígitos")
+            elif len(codigo_postal) != 5 or not codigo_postal.isdigit():
+                st.error("⚠️ El código postal debe tener 5 dígitos")
+            else:
+                # Guardar dirección
+                st.session_state['shipping_address'] = {
+                    'nombre': nombre,
+                    'telefono': telefono,
+                    'direccion': direccion,
+                    'ciudad': ciudad,
+                    'provincia': provincia,
+                    'codigo_postal': codigo_postal
+                }
+
+                # Avanzar al siguiente paso
+                st.session_state['checkout_step'] = 3
+                st.rerun()
+
+
+def render_payment_method_step():
+    """
+    Paso 3: Método de pago (SIMULADO).
+    """
+    st.markdown("## 💳 Paso 3: Método de Pago")
+
+    st.info("⚠️ **SIMULACIÓN ACADÉMICA** - No se procesará ningún pago real")
+
+    # Método de pago
+    payment_method = st.radio(
+        "Selecciona tu método de pago",
+        options=["💳 Tarjeta de Crédito/Débito", "🏦 Transferencia Bancaria"],
+        index=0
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if "Tarjeta" in payment_method:
+        render_card_payment_form()
+    else:
+        render_bank_transfer_info()
+
+    # Botones de navegación
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col1:
+        if st.button("⬅️ Volver", use_container_width=True):
+            st.session_state['checkout_step'] = 2
+            st.rerun()
+
+    with col3:
+        if st.button("✅ Confirmar Pedido", type="primary", use_container_width=True):
+            confirm_order(payment_method)
+
+
+def render_card_payment_form():
+    """
+    Renderiza el formulario de pago con tarjeta (simulado).
+    """
+    st.markdown("### 💳 Datos de la Tarjeta")
+
+    with st.form("payment_form"):
+        card_number = st.text_input(
+            "Número de tarjeta",
+            placeholder="1234 5678 9012 3456",
+            max_chars=19,
+            help="Simulado - cualquier número válido"
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            expiry = st.text_input(
+                "Fecha de expiración",
+                placeholder="MM/AA",
+                max_chars=5
+            )
+
+        with col2:
+            cvv = st.text_input(
+                "CVV",
+                placeholder="123",
+                max_chars=3,
+                type="password"
+            )
+
+        cardholder = st.text_input(
+            "Titular de la tarjeta",
+            placeholder="JUAN PEREZ"
+        )
+
+        # Note: Este formulario no hace nada real, los botones están fuera
+        st.form_submit_button("Guardar", disabled=True, help="Los botones principales están fuera del formulario")
+
+
+def render_bank_transfer_info():
+    """
+    Muestra información para transferencia bancaria (simulado).
+    """
+    st.markdown("### 🏦 Datos para Transferencia")
+
+    st.markdown("""
+    <div style="
+        background: #181633;
+        border: 1px solid #2d2d3a;
+        border-radius: 8px;
+        padding: 1.5rem;
+    ">
+        <p style="color: #d1d5db; margin: 0 0 1rem 0;">
+            Realiza la transferencia a la siguiente cuenta:
+        </p>
+        <p style="color: #ffffff; margin: 0.5rem 0;">
+            <strong>Banco:</strong> Banco SportStyle
+        </p>
+        <p style="color: #ffffff; margin: 0.5rem 0;">
+            <strong>IBAN:</strong> ES12 3456 7890 1234 5678 9012
+        </p>
+        <p style="color: #ffffff; margin: 0.5rem 0;">
+            <strong>Concepto:</strong> Pedido SportStyle
+        </p>
+        <p style="color: #9ca3af; font-size: 0.875rem; margin: 1rem 0 0 0;">
+            💡 Una vez confirmado el pedido, recibirás un email con los detalles.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def confirm_order(payment_method: str):
+    """
+    Confirma el pedido y guarda en session_state.
+
+    Args:
+        payment_method: Método de pago seleccionado
+    """
+    checkout_data = st.session_state.get('checkout_data')
+    shipping_address = st.session_state.get('shipping_address')
+
+    if not checkout_data or not shipping_address:
+        st.error("❌ Faltan datos para completar el pedido")
+        return
+
+    # Generar número de pedido
+    order_number = generate_order_number()
+
+    # Crear pedido
+    order = {
+        'order_number': order_number,
+        'date': datetime.now().isoformat(),
+        'items': checkout_data['cart'],
+        'subtotal': checkout_data['subtotal'],
+        'shipping': checkout_data['shipping'],
+        'discount': checkout_data['discount'],
+        'total': checkout_data['total'],
+        'points_earned': checkout_data['points_to_earn'],
+        'points_used': checkout_data.get('points_used', 0),
+        'shipping_address': shipping_address,
+        'payment_method': payment_method,
+        'status': 'confirmado'
+    }
+
+    # Guardar pedido en session_state
+    if 'orders' not in st.session_state:
+        st.session_state['orders'] = []
+
+    st.session_state['orders'].append(order)
+
+    # Actualizar puntos del usuario (simulado)
+    current_points = st.session_state.get('user_points', 0)
+    new_points = current_points + order['points_earned'] - order['points_used']
+    st.session_state['user_points'] = new_points
+
+    # Vaciar carrito y datos de checkout
+    st.session_state['cart'] = []
+    st.session_state['checkout_data'] = None
+    st.session_state['checkout_step'] = 1
+    st.session_state['applied_points_discount'] = 0
+    st.session_state['points_to_use'] = 0
+
+    # Guardar número de pedido para la página de confirmación
+    st.session_state['last_order_number'] = order_number
+
+    # Ir a página de confirmación
+    st.session_state[SESSION_KEYS["current_page"]] = "order_confirmation"
+    st.success("✅ ¡Pedido confirmado!")
+    st.balloons()
+    st.rerun()
+
+
+def generate_order_number() -> str:
+    """
+    Genera un número de pedido único.
+
+    Returns:
+        str: Número de pedido formato ORD-YYYYMMDD-NNNN
+    """
+    date_str = datetime.now().strftime("%Y%m%d")
+    orders_today = len([o for o in st.session_state.get('orders', []) if date_str in o.get('order_number', '')])
+    order_num = f"ORD-{date_str}-{orders_today + 1:04d}"
+    return order_num
