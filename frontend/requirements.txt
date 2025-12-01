@@ -1,15 +1,11 @@
 # Framework Web
-streamlit==1.31.0
+streamlit==1.29.0
 
 # HTTP Requests para comunicación con backend
-requests==2.31.0
+requests==2.32.3
 
-# Procesamiento de Imágenes
-Pillow==10.2.0
-
-# Mapas y GeoJSON (opcional)
-folium==0.15.1
-streamlit-folium==0.16.0
+# Análisis de datos para dashboard admin
+pandas==2.1.4
 
 # Utilidades
 python-dotenv==1.0.0
