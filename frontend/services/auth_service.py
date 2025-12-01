@@ -5,7 +5,7 @@ Gestiona las llamadas al backend de autenticación.
 
 import requests
 from typing import Tuple, Optional, Dict
-from frontend.config import AUTH_ENDPOINTS
+from config import AUTH_ENDPOINTS
 
 
 class AuthService:
