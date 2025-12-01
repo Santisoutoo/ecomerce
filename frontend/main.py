@@ -7,6 +7,14 @@ import streamlit as st
 from frontend.config import APP_NAME, APP_ICON, SESSION_KEYS
 from frontend.components.auth_form import render_auth_form
 from frontend.components.navbar import render_navbar, show_welcome_toast
+from frontend.pages.home import render_home_page
+from frontend.pages.catalog import render_catalog_page
+from frontend.pages.product_detail import render_product_detail_page
+from frontend.pages.cart import render_cart_page
+from frontend.pages.checkout import render_checkout_page
+from frontend.pages.order_confirmation import render_order_confirmation_page
+from frontend.pages.account import render_account_page
+from frontend.pages.admin import render_admin_page
 
 
 # Configuración de la página
@@ -54,55 +62,7 @@ def load_custom_css():
         """, unsafe_allow_html=True)
 
 
-def render_home_page():
-    """
-    Renderiza la página de inicio (placeholder).
-    """
-    st.title("🏠 Inicio")
-    st.write("Bienvenido a SportStyle Store")
-    st.info("🚧 Página en construcción - Próximamente catálogo de productos")
-
-
-def render_catalog_page():
-    """
-    Renderiza la página de catálogo (placeholder).
-    """
-    st.title("🛍️ Catálogo")
-    st.write("Explora nuestros productos deportivos")
-    st.info("🚧 Página en construcción - Próximamente productos de fútbol, baloncesto y F1")
-
-
-def render_cart_page():
-    """
-    Renderiza la página del carrito (placeholder).
-    """
-    st.title("🛒 Carrito de Compras")
-    st.write("Tu carrito de compras")
-    st.info("🚧 Página en construcción - Gestión de carrito próximamente")
-
-
-def render_account_page():
-    """
-    Renderiza la página de cuenta de usuario (placeholder).
-    """
-    st.title("👤 Mi Cuenta")
-
-    # Mostrar información básica del usuario
-    user_email = st.session_state.get(SESSION_KEYS["user_email"], "No disponible")
-    user_id = st.session_state.get(SESSION_KEYS["user_id"], "No disponible")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("Información Personal")
-        st.write(f"**Email:** {user_email}")
-        st.write(f"**ID:** {user_id}")
-
-    with col2:
-        st.subheader("Puntos de Fidelización")
-        st.metric("Puntos Disponibles", 0)
-
-    st.info("🚧 Página en construcción - Gestión completa de perfil próximamente")
+# Todas las páginas ahora se importan desde frontend.pages.*
 
 
 def main():
@@ -142,11 +102,23 @@ def main():
         elif current_page == "catalog":
             render_catalog_page()
 
+        elif current_page == "product_detail":
+            render_product_detail_page()
+
         elif current_page == "cart":
             render_cart_page()
 
+        elif current_page == "checkout":
+            render_checkout_page()
+
+        elif current_page == "order_confirmation":
+            render_order_confirmation_page()
+
         elif current_page == "account":
             render_account_page()
+
+        elif current_page == "admin":
+            render_admin_page()
 
         else:
             # Página por defecto
