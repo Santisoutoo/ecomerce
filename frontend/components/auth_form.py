@@ -4,8 +4,8 @@ Componente UI completo con validación y estilos.
 """
 
 import streamlit as st
-from frontend.services.auth_service import AuthService
-from frontend.config import SESSION_KEYS
+from services.auth_service import AuthService
+from config import SESSION_KEYS
 
 
 def render_auth_form():
