@@ -4,17 +4,17 @@ Punto de entrada del frontend con gestión de autenticación y navegación.
 """
 
 import streamlit as st
-from frontend.config import APP_NAME, APP_ICON, SESSION_KEYS
-from frontend.components.auth_form import render_auth_form
-from frontend.components.navbar import render_navbar, show_welcome_toast
-from frontend.pages.home import render_home_page
-from frontend.pages.catalog import render_catalog_page
-from frontend.pages.product_detail import render_product_detail_page
-from frontend.pages.cart import render_cart_page
-from frontend.pages.checkout import render_checkout_page
-from frontend.pages.order_confirmation import render_order_confirmation_page
-from frontend.pages.account import render_account_page
-from frontend.pages.admin import render_admin_page
+from config import APP_NAME, APP_ICON, SESSION_KEYS
+from components.auth_form import render_auth_form
+from components.navbar import render_navbar, show_welcome_toast
+from pages.home import render_home_page
+from pages.catalog import render_catalog_page
+from pages.product_detail import render_product_detail_page
+from pages.cart import render_cart_page
+from pages.checkout import render_checkout_page
+from pages.order_confirmation import render_order_confirmation_page
+from pages.account import render_account_page
+from pages.admin import render_admin_page
 
 
 # Configuración de la página
@@ -45,7 +45,7 @@ def load_custom_css():
     Carga los estilos CSS personalizados.
     """
     try:
-        from frontend.styles import GLOBAL_CSS
+        from styles import GLOBAL_CSS
         st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
     except ImportError:
         # Si no existe styles.py, usar estilos básicos
