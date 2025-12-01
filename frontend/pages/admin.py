@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import random
-from frontend.config import SESSION_KEYS
+from config import SESSION_KEYS
 
 
 def render_admin_page():
@@ -22,31 +22,33 @@ def render_admin_page():
     st.title("📊 Panel de Administración")
     st.markdown("Dashboard de Business Intelligence - Vista general del negocio")
 
-    # Métricas principales en cards
-    render_main_metrics()
+    # Mostrar loader mientras carga
+    with st.spinner("Cargando métricas del dashboard..."):
+        # Métricas principales en cards
+        render_main_metrics()
 
-    st.markdown("---")
+        st.markdown("---")
 
-    # Layout de 2 columnas
-    col_left, col_right = st.columns([2, 1], gap="large")
+        # Layout de 2 columnas
+        col_left, col_right = st.columns([2, 1], gap="large")
 
-    with col_left:
-        # Gráfico de ingresos en el tiempo
-        render_revenue_chart()
+        with col_left:
+            # Gráfico de ingresos en el tiempo
+            render_revenue_chart()
 
-        st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
 
-        # Usuarios por región
-        render_users_by_region()
+            # Usuarios por región
+            render_users_by_region()
 
-    with col_right:
-        # Stock por categorías
-        render_stock_by_category()
+        with col_right:
+            # Stock por categorías
+            render_stock_by_category()
 
-        st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
 
-        # Métricas adicionales
-        render_additional_metrics()
+            # Métricas adicionales
+            render_additional_metrics()
 
 
 def is_admin() -> bool:
@@ -161,16 +163,11 @@ def render_metric_card(title: str, value, secondary_value=None, change_percent=N
         change_percent: Porcentaje de cambio (opcional)
         change_label: Etiqueta del cambio (opcional)
     """
-    # Determinar color del cambio
-    if change_percent is not None:
-        change_color = "#10b981" if change_percent >= 0 else "#ef4444"
-        change_icon = "▲" if change_percent >= 0 else "▼"
-        change_text = f"{change_icon} {abs(change_percent):.1f}%"
-    else:
-        change_color = "#9ca3af"
-        change_text = ""
+    # Construir HTML completo usando lista para evitar f-strings anidados
+    html_parts = []
 
-    st.markdown(f"""
+    # Abrir div y agregar título y valor principal
+    html_parts.append('''
     <div style="
         background: linear-gradient(135deg, #1e1b4b 0%, #2d2d3a 100%);
         border: 1px solid #a78bfa;
@@ -178,22 +175,29 @@ def render_metric_card(title: str, value, secondary_value=None, change_percent=N
         padding: 1.5rem;
         text-align: center;
     ">
-        <p style="color: #9ca3af; font-size: 0.875rem; margin: 0 0 0.5rem 0;">{title}</p>
-        <p style="color: #ffffff; font-size: 2rem; font-weight: 700; margin: 0;">
-            {value}
-        </p>
-        {f'''
-        <p style="color: #d1d5db; font-size: 0.875rem; margin: 0.5rem 0 0 0;">
-            {secondary_value} {change_label if change_label else ''}
-        </p>
-        ''' if secondary_value else ''}
-        {f'''
-        <p style="color: {change_color}; font-size: 0.875rem; font-weight: 600; margin: 0.5rem 0 0 0;">
-            {change_text} {change_label if change_label and not secondary_value else ''}
-        </p>
-        ''' if change_percent is not None else ''}
-    </div>
-    """, unsafe_allow_html=True)
+    ''')
+
+    html_parts.append(f'<p style="color: #9ca3af; font-size: 0.875rem; margin: 0 0 0.5rem 0;">{title}</p>')
+    html_parts.append(f'<p style="color: #ffffff; font-size: 2rem; font-weight: 700; margin: 0;">{value}</p>')
+
+    # Agregar secondary_value si existe
+    if secondary_value:
+        label_text = change_label if change_label else ''
+        html_parts.append(f'<p style="color: #d1d5db; font-size: 0.875rem; margin: 0.5rem 0 0 0;">{secondary_value} {label_text}</p>')
+
+    # Agregar change_percent si existe
+    if change_percent is not None:
+        change_color = "#10b981" if change_percent >= 0 else "#ef4444"
+        change_icon = "▲" if change_percent >= 0 else "▼"
+        label_text = change_label if change_label and not secondary_value else ''
+        html_parts.append(f'<p style="color: {change_color}; font-size: 0.875rem; font-weight: 600; margin: 0.5rem 0 0 0;">{change_icon} {abs(change_percent):.1f}% {label_text}</p>')
+
+    # Cerrar div
+    html_parts.append('</div>')
+
+    # Unir todas las partes y renderizar
+    full_html = ''.join(html_parts)
+    st.markdown(full_html, unsafe_allow_html=True)
 
 
 def render_revenue_chart():

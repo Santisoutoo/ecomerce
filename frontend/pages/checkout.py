@@ -5,7 +5,7 @@ Proceso de finalización de compra con dirección de envío y pago simulado.
 
 import streamlit as st
 from datetime import datetime
-from frontend.config import SESSION_KEYS
+from config import SESSION_KEYS
 
 
 def render_checkout_page():

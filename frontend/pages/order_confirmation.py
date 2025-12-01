@@ -5,7 +5,7 @@ Muestra los detalles del pedido confirmado y opciones de navegación.
 
 import streamlit as st
 from datetime import datetime
-from frontend.config import SESSION_KEYS
+from config import SESSION_KEYS
 
 
 def render_order_confirmation_page():

@@ -4,8 +4,8 @@ Muestra productos agregados, permite editar cantidades y proceder al checkout.
 """
 
 import streamlit as st
-from frontend.components.cart_item import render_cart_item
-from frontend.config import SESSION_KEYS
+from components.cart_item import render_cart_item
+from config import SESSION_KEYS
 
 
 # Constantes (deberían venir de config)

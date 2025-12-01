@@ -6,8 +6,8 @@ Muestra información personal, historial de pedidos, puntos y favoritos.
 import streamlit as st
 from datetime import datetime
 from typing import List, Dict
-from frontend.config import SESSION_KEYS
-from frontend.services.product_service import ProductService
+from config import SESSION_KEYS
+from services.product_service import ProductService
 
 
 def render_account_page():

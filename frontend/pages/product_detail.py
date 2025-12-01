@@ -4,8 +4,8 @@ Muestra información completa, galería, personalización y opciones de compra.
 """
 
 import streamlit as st
-from frontend.services.product_service import ProductService
-from frontend.config import SESSION_KEYS
+from services.product_service import ProductService
+from config import SESSION_KEYS
 
 
 def render_product_detail_page():

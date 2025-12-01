@@ -5,8 +5,8 @@ Permite buscar, filtrar y ordenar productos.
 
 import streamlit as st
 from typing import List, Dict
-from frontend.services.product_service import ProductService
-from frontend.components.product_card import render_product_card
+from services.product_service import ProductService
+from components.product_card import render_product_card
 
 
 def render_catalog_page():
