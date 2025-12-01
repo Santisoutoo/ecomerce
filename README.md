@@ -173,15 +173,6 @@ Después de ejecutar el seed, puedes usar:
 pytest tests/
 ```
 
-## 🤝 Contribución
-
-Este es un proyecto académico. Para contribuir:
-
-1. Crear una rama feature: `git checkout -b feature/nueva-funcionalidad`
-2. Hacer commit de cambios: `git commit -m "Agregar nueva funcionalidad"`
-3. Push a la rama: `git push origin feature/nueva-funcionalidad`
-4. Abrir un Pull Request
-
 ## 📝 Convenciones de Código
 
 - **Código:** Inglés
@@ -195,11 +186,6 @@ Este es un proyecto académico. Para contribuir:
 ## 📄 Licencia
 
 Este proyecto es para fines educativos. Desarrollado para la asignatura de Desarrollo Web y App Móviles - Cuarto Año.
-
-## 📞 Contacto
-
-Grupo 11 - Desarrollo Web y App Móviles
-Universidad [Tu Universidad]
 
 ---
 
