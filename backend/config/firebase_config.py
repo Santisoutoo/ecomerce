@@ -29,7 +29,7 @@ def initialize_firebase():
 
     try:
         # Obtener URL de Realtime Database
-        database_url = os.getenv("FIREBASE_DATABASE_URL", "https://sportstyle-store-default-rtdb.europe-west1.firebasedatabase.app")
+        database_url = os.getenv("FIREBASE_DATABASE_URL", "https://sportstyle-store-default-rtdb.firebaseio.com")
 
         # Opción 1: Usar archivo de credenciales JSON
         if FIREBASE_CREDENTIALS_PATH.exists():
