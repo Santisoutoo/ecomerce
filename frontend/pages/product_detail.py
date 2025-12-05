@@ -5,6 +5,7 @@ Muestra información completa, galería, personalización y opciones de compra.
 
 import streamlit as st
 from services.product_service import ProductService
+from services.cart_service import CartService
 from components.navbar import show_success_toast, show_error_toast, show_info_toast
 from config import SESSION_KEYS
 
@@ -412,35 +413,21 @@ def add_to_cart(product: dict):
                 'numero': numero
             }
 
-    # Calcular precio total
-    precio_base = product.get('precio', 0)
-    precio_personalizacion = product.get('precio_personalizacion', 0) if personalizacion else 0
-    precio_total = precio_base + precio_personalizacion
+    # Agregar al carrito usando el servicio
+    try:
+        CartService.add_to_cart(
+            product_id=product.get('id'),
+            quantity=cantidad,
+            size=talla,
+            personalization=personalizacion
+        )
 
-    # Crear item del carrito
-    cart_item = {
-        'product_id': product.get('id'),
-        'name': product.get('name'),
-        'equipo': product.get('equipo'),
-        'imagen_url': product.get('imagen_url'),
-        'precio_unitario': precio_base,
-        'precio_personalizacion': precio_personalizacion,
-        'precio_total': precio_total,
-        'talla': talla,
-        'cantidad': cantidad,
-        'personalizacion': personalizacion
-    }
+        # Mostrar mensaje de éxito con animación elegante
+        show_success_toast(f"✅ {product.get('name')} agregado al carrito")
+        show_elegant_add_animation()
 
-    # Inicializar carrito si no existe
-    if 'cart' not in st.session_state:
-        st.session_state['cart'] = []
-
-    # Agregar al carrito
-    st.session_state['cart'].append(cart_item)
-
-    # Mostrar mensaje de éxito con animación elegante
-    show_success_toast(f"✅ {product.get('name')} agregado al carrito")
-    show_elegant_add_animation()
+    except Exception as e:
+        show_error_toast(f"Error al agregar al carrito: {str(e)}")
 
 
 def show_elegant_add_animation():

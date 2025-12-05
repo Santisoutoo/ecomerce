@@ -5,6 +5,7 @@ Muestra información del producto con imagen, precio y acciones.
 
 import streamlit as st
 from components.navbar import show_welcome_toast, show_error_toast, show_info_toast, show_success_toast
+from services.cart_service import CartService
 
 
 def add_quick_to_cart(product: dict):
@@ -18,26 +19,16 @@ def add_quick_to_cart(product: dict):
     tallas = product.get('tallas', ['M'])
     talla = tallas[0] if tallas else 'M'
 
-    # Crear item del carrito
-    cart_item = {
-        'product_id': product.get('id'),
-        'name': product.get('name'),
-        'equipo': product.get('equipo'),
-        'imagen_url': product.get('imagen_url'),
-        'precio_unitario': product.get('precio', 0),
-        'precio_personalizacion': 0,
-        'precio_total': product.get('precio', 0),
-        'talla': talla,
-        'cantidad': 1,
-        'personalizacion': None
-    }
-
-    # Inicializar carrito si no existe
-    if 'cart' not in st.session_state:
-        st.session_state['cart'] = []
-
-    # Agregar al carrito
-    st.session_state['cart'].append(cart_item)
+    # Agregar al carrito usando el servicio
+    try:
+        CartService.add_to_cart(
+            product_id=product.get('id'),
+            quantity=1,
+            size=talla,
+            personalization=None
+        )
+    except Exception as e:
+        show_error_toast(f"Error al agregar al carrito: {str(e)}")
 
 
 def render_product_card(product: dict, key_prefix: str = ""):

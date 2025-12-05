@@ -1,9 +1,10 @@
 """
 Servicio de productos para el frontend.
-Gestiona la obtención y filtrado de productos.
-Por ahora usa datos mock hasta implementar el backend completo.
+Gestiona la obtención y filtrado de productos desde BBDD.json.
 """
 
+import json
+import os
 from typing import List, Dict, Optional
 
 
@@ -11,6 +12,59 @@ class ProductService:
     """
     Servicio para gestionar productos.
     """
+
+    @staticmethod
+    def _load_data() -> dict:
+        """
+        Carga los datos desde el archivo BBDD.json.
+
+        Returns:
+            dict: Datos completos de la base de datos
+        """
+        # Obtener la ruta del archivo BBDD.json
+        current_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        json_path = os.path.join(current_dir, 'data', 'BBDD.json')
+
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            print(f"⚠️ No se encontró el archivo BBDD.json en {json_path}")
+            return {"products": [], "categories": [], "leagues": []}
+        except json.JSONDecodeError:
+            print(f"⚠️ Error al decodificar el archivo BBDD.json")
+            return {"products": [], "categories": [], "leagues": []}
+
+    @staticmethod
+    def _map_product(product: dict) -> dict:
+        """
+        Mapea un producto del formato JSON al formato esperado por el frontend.
+
+        Args:
+            product: Producto en formato JSON
+
+        Returns:
+            dict: Producto en formato frontend
+        """
+        # Calcular stock total
+        stock_dict = product.get('stock', {})
+        total_stock = sum(stock_dict.values()) if isinstance(stock_dict, dict) else 0
+
+        return {
+            "id": product.get("id"),
+            "name": product.get("name"),
+            "deporte": product.get("category"),  # futbol, formula1, baloncesto
+            "equipo": product.get("team"),
+            "categoria": "Camiseta",  # Por ahora todas son camisetas
+            "precio": product.get("price", 0),
+            "precio_personalizacion": 10.00,  # Precio fijo de personalización
+            "permite_personalizacion": True,
+            "stock": total_stock,
+            "tallas": product.get("sizes", []),
+            "imagen_url": product.get("images", {}).get("main", "https://via.placeholder.com/400x400?text=Sin+Imagen"),
+            "destacado": product.get("featured", False),
+            "descripcion": product.get("description", "Producto oficial de alta calidad.")
+        }
 
     @staticmethod
     def get_sports() -> List[Dict[str, str]]:
@@ -101,123 +155,16 @@ class ProductService:
         Returns:
             List[Dict]: Lista de productos destacados
         """
-        # Datos mock de productos destacados
-        products = [
-            {
-                "id": "prod_001",
-                "name": "Camiseta Real Madrid 1ª Equipación 2024/25",
-                "deporte": "futbol",
-                "equipo": "Real Madrid CF",
-                "categoria": "Camiseta",
-                "precio": 89.99,
-                "precio_personalizacion": 10.00,
-                "permite_personalizacion": True,
-                "stock": 50,
-                "tallas": ["S", "M", "L", "XL", "XXL"],
-                "imagen_url": "https://via.placeholder.com/400x400?text=Real+Madrid+Camiseta",
-                "destacado": True
-            },
-            {
-                "id": "prod_002",
-                "name": "Camiseta FC Barcelona 2024/25",
-                "deporte": "futbol",
-                "equipo": "FC Barcelona",
-                "categoria": "Camiseta",
-                "precio": 89.99,
-                "precio_personalizacion": 10.00,
-                "permite_personalizacion": True,
-                "stock": 45,
-                "tallas": ["S", "M", "L", "XL", "XXL"],
-                "imagen_url": "https://via.placeholder.com/400x400?text=FC+Barcelona+Camiseta",
-                "destacado": True
-            },
-            {
-                "id": "prod_003",
-                "name": "Gorra Ferrari F1 2025",
-                "deporte": "formula1",
-                "equipo": "Scuderia Ferrari",
-                "categoria": "Gorra",
-                "precio": 35.00,
-                "precio_personalizacion": 0,
-                "permite_personalizacion": False,
-                "stock": 100,
-                "tallas": ["Única"],
-                "imagen_url": "https://via.placeholder.com/400x400?text=Ferrari+Gorra",
-                "destacado": True
-            },
-            {
-                "id": "prod_004",
-                "name": "Sudadera Real Madrid Baloncesto",
-                "deporte": "baloncesto",
-                "equipo": "Real Madrid Baloncesto",
-                "categoria": "Sudadera",
-                "precio": 65.00,
-                "precio_personalizacion": 12.00,
-                "permite_personalizacion": True,
-                "stock": 30,
-                "tallas": ["M", "L", "XL"],
-                "imagen_url": "https://via.placeholder.com/400x400?text=Real+Madrid+Basket+Sudadera",
-                "destacado": True
-            },
-            {
-                "id": "prod_005",
-                "name": "Camiseta Red Bull Racing 2025",
-                "deporte": "formula1",
-                "equipo": "Red Bull Racing",
-                "categoria": "Camiseta",
-                "precio": 75.00,
-                "precio_personalizacion": 0,
-                "permite_personalizacion": False,
-                "stock": 60,
-                "tallas": ["S", "M", "L", "XL"],
-                "imagen_url": "https://via.placeholder.com/400x400?text=Red+Bull+Camiseta",
-                "destacado": True
-            },
-            {
-                "id": "prod_006",
-                "name": "Bufanda Atlético de Madrid",
-                "deporte": "futbol",
-                "equipo": "Atlético de Madrid",
-                "categoria": "Bufanda",
-                "precio": 25.00,
-                "precio_personalizacion": 0,
-                "permite_personalizacion": False,
-                "stock": 80,
-                "tallas": ["Única"],
-                "imagen_url": "https://via.placeholder.com/400x400?text=Atletico+Bufanda",
-                "destacado": True
-            },
-            {
-                "id": "prod_007",
-                "name": "Camiseta FC Barcelona Basket",
-                "deporte": "baloncesto",
-                "equipo": "FC Barcelona Basket",
-                "categoria": "Camiseta",
-                "precio": 79.99,
-                "precio_personalizacion": 10.00,
-                "permite_personalizacion": True,
-                "stock": 35,
-                "tallas": ["M", "L", "XL", "XXL"],
-                "imagen_url": "https://via.placeholder.com/400x400?text=Barça+Basket+Camiseta",
-                "destacado": True
-            },
-            {
-                "id": "prod_008",
-                "name": "Chaqueta Mercedes F1",
-                "deporte": "formula1",
-                "equipo": "Mercedes-AMG Petronas",
-                "categoria": "Chaqueta",
-                "precio": 120.00,
-                "precio_personalizacion": 0,
-                "permite_personalizacion": False,
-                "stock": 25,
-                "tallas": ["M", "L", "XL"],
-                "imagen_url": "https://via.placeholder.com/400x400?text=Mercedes+Chaqueta",
-                "destacado": True
-            }
-        ]
+        data = ProductService._load_data()
+        products = data.get('products', [])
 
-        return products[:limit]
+        # Filtrar solo productos activos
+        active_products = [p for p in products if p.get('active', True)]
+
+        # Mapear productos al formato del frontend
+        mapped_products = [ProductService._map_product(p) for p in active_products]
+
+        return mapped_products[:limit]
 
     @staticmethod
     def get_products_by_sport(
@@ -238,21 +185,27 @@ class ProductService:
         Returns:
             List[Dict]: Lista de productos filtrados
         """
-        # Obtener todos los productos
-        all_products = ProductService.get_featured_products(limit=100)
+        data = ProductService._load_data()
+        products = data.get('products', [])
 
-        # Filtrar por deporte
-        filtered = [p for p in all_products if p["deporte"] == sport_id]
+        # Filtrar solo productos activos
+        active_products = [p for p in products if p.get('active', True)]
+
+        # Filtrar por deporte (category en JSON)
+        filtered = [p for p in active_products if p.get("category") == sport_id]
 
         # Filtrar por equipo si se especifica
         if team:
-            filtered = [p for p in filtered if p["equipo"] == team]
+            filtered = [p for p in filtered if p.get("team") == team]
 
-        # Filtrar por categoría si se especifica
+        # Filtrar por categoría si se especifica (por ahora no se usa en JSON)
         if categoria:
-            filtered = [p for p in filtered if p["categoria"] == categoria]
+            filtered = [p for p in filtered if p.get("categoria") == categoria]
 
-        return filtered[:limit]
+        # Mapear productos al formato del frontend
+        mapped_products = [ProductService._map_product(p) for p in filtered]
+
+        return mapped_products[:limit]
 
     @staticmethod
     def get_product_by_id(product_id: str) -> Optional[Dict]:
@@ -265,10 +218,13 @@ class ProductService:
         Returns:
             Optional[Dict]: Producto o None si no se encuentra
         """
-        products = ProductService.get_featured_products(limit=100)
+        data = ProductService._load_data()
+        products = data.get('products', [])
+
         for product in products:
-            if product["id"] == product_id:
-                return product
+            if product.get("id") == product_id and product.get('active', True):
+                return ProductService._map_product(product)
+
         return None
 
     @staticmethod
@@ -282,14 +238,23 @@ class ProductService:
         Returns:
             List[Dict]: Lista de productos que coinciden con la búsqueda
         """
-        all_products = ProductService.get_featured_products(limit=100)
+        data = ProductService._load_data()
+        products = data.get('products', [])
+
+        # Filtrar solo productos activos
+        active_products = [p for p in products if p.get('active', True)]
+
         query_lower = query.lower()
 
+        # Buscar en nombre, equipo y descripción
         results = [
-            p for p in all_products
-            if query_lower in p["name"].lower()
-            or query_lower in p["equipo"].lower()
-            or query_lower in p["categoria"].lower()
+            p for p in active_products
+            if query_lower in p.get("name", "").lower()
+            or query_lower in p.get("team", "").lower()
+            or query_lower in p.get("description", "").lower()
         ]
 
-        return results
+        # Mapear productos al formato del frontend
+        mapped_results = [ProductService._map_product(p) for p in results]
+
+        return mapped_results

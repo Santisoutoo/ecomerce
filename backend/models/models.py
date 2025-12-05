@@ -268,14 +268,36 @@ class UserPublic(BaseModel):
 # CART MODELS
 # ============================================================================
 
+class Personalization(BaseModel):
+    """Modelo de personalización de producto."""
+    nombre: Optional[str] = Field(None, max_length=15, description="Nombre a personalizar (máx 15 caracteres)")
+    numero: Optional[int] = Field(None, ge=0, le=99, description="Número a personalizar (0-99)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "nombre": "RONALDO",
+                "numero": 7
+            }
+        }
+
+
 class CartItem(BaseModel):
     """Modelo de item del carrito de compras."""
     id: str = Field(..., description="ID único del item del carrito")
     user_id: str = Field(..., description="ID del usuario")
     product_id: str = Field(..., description="ID del producto")
+    product_name: str = Field(..., description="Nombre del producto")
+    product_image: str = Field(..., description="URL de la imagen del producto")
+    team: str = Field(..., description="Equipo del producto")
     quantity: int = Field(..., gt=0, description="Cantidad del producto")
-    size: SizeEnum = Field(..., description="Talla seleccionada")
-    price: float = Field(..., gt=0, description="Precio unitario")
+    size: str = Field(..., description="Talla seleccionada")
+    unit_price: float = Field(..., gt=0, description="Precio unitario del producto")
+    personalization_price: float = Field(default=0, ge=0, description="Precio de personalización")
+    personalization: Optional[Personalization] = Field(None, description="Datos de personalización")
+    subtotal: float = Field(..., gt=0, description="Subtotal del item (precio × cantidad)")
+    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow, description="Fecha de creación")
+    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow, description="Fecha de actualización")
 
     class Config:
         json_schema_extra = {
@@ -283,9 +305,20 @@ class CartItem(BaseModel):
                 "id": "cart_001",
                 "user_id": "user_001",
                 "product_id": "prod_001",
+                "product_name": "Camiseta FC Barcelona",
+                "product_image": "https://example.com/image.jpg",
+                "team": "Barcelona",
                 "quantity": 2,
                 "size": "L",
-                "price": 89.99
+                "unit_price": 89.99,
+                "personalization_price": 10.00,
+                "personalization": {
+                    "nombre": "MESSI",
+                    "numero": 10
+                },
+                "subtotal": 199.98,
+                "created_at": "2024-12-05T10:30:00",
+                "updated_at": "2024-12-05T10:30:00"
             }
         }
 
@@ -293,14 +326,51 @@ class CartItem(BaseModel):
 class CartItemCreate(BaseModel):
     """Modelo para añadir un item al carrito."""
     product_id: str = Field(..., description="ID del producto")
-    quantity: int = Field(..., gt=0, description="Cantidad")
-    size: SizeEnum = Field(..., description="Talla")
+    quantity: int = Field(default=1, gt=0, description="Cantidad")
+    size: str = Field(..., description="Talla")
+    personalization: Optional[Personalization] = Field(None, description="Datos de personalización")
 
 
 class CartItemUpdate(BaseModel):
     """Modelo para actualizar un item del carrito."""
     quantity: Optional[int] = Field(None, gt=0)
-    size: Optional[SizeEnum] = None
+    size: Optional[str] = None
+    personalization: Optional[Personalization] = None
+
+
+class Cart(BaseModel):
+    """Modelo completo del carrito de compras."""
+    user_id: str = Field(..., description="ID del usuario")
+    items: List[CartItem] = Field(default_factory=list, description="Items del carrito")
+    total_items: int = Field(default=0, ge=0, description="Total de items en el carrito")
+    subtotal: float = Field(default=0, ge=0, description="Subtotal del carrito")
+    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow, description="Fecha de actualización")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "user_id": "user_001",
+                "items": [
+                    {
+                        "id": "cart_001",
+                        "user_id": "user_001",
+                        "product_id": "prod_001",
+                        "product_name": "Camiseta FC Barcelona",
+                        "product_image": "https://example.com/image.jpg",
+                        "team": "Barcelona",
+                        "quantity": 2,
+                        "size": "L",
+                        "unit_price": 89.99,
+                        "personalization_price": 10.00,
+                        "personalization": {"nombre": "MESSI", "numero": 10},
+                        "subtotal": 199.98
+                    }
+                ],
+                "total_items": 2,
+                "subtotal": 199.98,
+                "updated_at": "2024-12-05T10:30:00"
+            }
+        }
 
 
 # ============================================================================
