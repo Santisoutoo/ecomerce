@@ -170,7 +170,8 @@ def render_order_card(order: dict):
     status_color = status_colors.get(status, '#9ca3af')
 
     with st.container():
-        st.markdown(f"""
+        # Abrir contenedor principal
+        st.markdown("""
         <div style="
             background: #181633;
             border: 1px solid #2d2d3a;
@@ -179,16 +180,33 @@ def render_order_card(order: dict):
             margin-bottom: 1rem;
             transition: all 0.3s;
         ">
+        """, unsafe_allow_html=True)
+
+        # Abrir header flex
+        st.markdown("""
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
                 <div>
+        """, unsafe_allow_html=True)
+
+        # Número de pedido
+        st.markdown(f"""
                     <p style="color: #a78bfa; font-weight: 600; font-size: 1rem; margin: 0;">
                         Pedido #{order_number}
                     </p>
+        """, unsafe_allow_html=True)
+
+        # Fecha
+        st.markdown(f"""
                     <p style="color: #9ca3af; font-size: 0.875rem; margin: 0.25rem 0 0 0;">
                         {formatted_date}
                     </p>
                 </div>
                 <div>
+        """, unsafe_allow_html=True)
+
+        # Estado badge
+        status_text = status.replace('_', ' ').capitalize()
+        st.markdown(f"""
                     <span style="
                         background: {status_color}20;
                         color: {status_color};
@@ -197,19 +215,29 @@ def render_order_card(order: dict):
                         font-size: 0.875rem;
                         font-weight: 600;
                     ">
-                        {status.replace('_', ' ').capitalize()}
+                        {status_text}
                     </span>
                 </div>
             </div>
+        """, unsafe_allow_html=True)
 
+        # Separador y resumen
+        st.markdown("""
             <div style="border-top: 1px solid #2d2d3a; padding-top: 1rem; margin-bottom: 1rem;">
+        """, unsafe_allow_html=True)
+
+        # Productos y total
+        productos_text = f"{len(items)} producto" + ("s" if len(items) != 1 else "")
+        st.markdown(f"""
                 <p style="color: #d1d5db; font-size: 0.875rem; margin: 0 0 0.5rem 0;">
-                    <strong>{len(items)}</strong> producto{'s' if len(items) != 1 else ''} ·
+                    <strong>{productos_text}</strong> ·
                     Total: <strong style="color: #a78bfa; font-size: 1.1rem;">{total:.2f}€</strong>
                 </p>
             </div>
-        </div>
         """, unsafe_allow_html=True)
+
+        # Cerrar contenedor principal
+        st.markdown("</div>", unsafe_allow_html=True)
 
         # Mostrar productos del pedido (colapsable)
         with st.expander(f"Ver productos ({len(items)})"):
@@ -434,38 +462,42 @@ def render_favorite_card(product: dict, index: int):
         product: Diccionario del producto
         index: Índice del producto
     """
-    st.markdown(f"""
-    <div style="
-        background: #181633;
-        border: 1px solid #2d2d3a;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        text-align: center;
-    ">
-        <img src="{product.get('imagen_url', 'https://via.placeholder.com/200')}"
-             style="width: 100%; border-radius: 8px; margin-bottom: 1rem;"
-             alt="{product.get('name', 'Producto')}">
+    # Contenedor de la tarjeta
+    with st.container():
+        # Imagen
+        st.image(
+            product.get('imagen_url', 'https://via.placeholder.com/200')
+        )
 
-        <p style="color: #a78bfa; font-size: 0.75rem; margin: 0;">{product.get('equipo', '')}</p>
-        <p style="color: #ffffff; font-weight: 600; margin: 0.5rem 0;">{product.get('name', 'Producto')}</p>
-        <p style="color: #a78bfa; font-size: 1.25rem; font-weight: 700; margin: 0.5rem 0;">
-            {product.get('precio', 0):.2f}€
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+        # Info del producto
+        st.markdown(f"""
+        <div style="text-align: center; padding: 0.5rem 0;">
+            <p style="color: #a78bfa; font-size: 0.75rem; margin: 0 0 0.25rem 0;">
+                {product.get('equipo', '')}
+            </p>
+            <p style="color: #ffffff; font-weight: 600; font-size: 0.9rem; margin: 0 0 0.5rem 0;">
+                {product.get('name', 'Producto')}
+            </p>
+            <p style="color: #a78bfa; font-size: 1.25rem; font-weight: 700; margin: 0;">
+                {product.get('precio', 0):.2f}€
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
+        # Botones
+        col1, col2 = st.columns(2)
 
-    with col1:
-        if st.button("👁️ Ver", key=f"view_fav_{index}", use_container_width=True):
-            st.session_state['selected_product'] = product.get('id')
-            st.session_state[SESSION_KEYS["current_page"]] = "product_detail"
-            st.rerun()
+        with col1:
+            if st.button("👁️ Ver", key=f"view_fav_{index}", use_container_width=True):
+                st.session_state['selected_product'] = product.get('id')
+                st.session_state[SESSION_KEYS["current_page"]] = "product_detail"
+                st.rerun()
 
-    with col2:
-        if st.button("🗑️", key=f"remove_fav_{index}", use_container_width=True, type="secondary"):
-            remove_from_favorites(product.get('id'))
+        with col2:
+            if st.button("🗑️", key=f"remove_fav_{index}", use_container_width=True, type="secondary"):
+                remove_from_favorites(product.get('id'))
+
+        st.markdown("<hr style='margin: 1rem 0; border-color: #2d2d3a;'>", unsafe_allow_html=True)
 
 
 def remove_from_favorites(product_id: str):

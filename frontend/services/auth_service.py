@@ -201,3 +201,45 @@ class AuthService:
             # Aún si falla la llamada al backend, consideramos el logout exitoso
             # porque el token se eliminará del frontend de todas formas
             return True, None
+
+
+    @staticmethod
+    def upload_profile_picture(image_file, access_token: str) -> Tuple[bool, Optional[str], Optional[str]]:
+        """
+        Sube una foto de perfil al servidor.
+
+        Args:
+            image_file: Archivo de imagen (tipo UploadedFile de streamlit)
+            access_token: Token JWT de autenticación
+
+        Returns:
+            Tuple[bool, Optional[str], Optional[str]]:
+                - success: True si la subida fue exitosa
+                - url: URL pública de la imagen
+                - error: Mensaje de error si falló
+        """
+        try:
+            files = {"file": (image_file.name, image_file, image_file.type)}
+
+            response = requests.post(
+                f"{AUTH_ENDPOINTS['signup'].rsplit('/', 1)[0]}/upload-profile-picture",
+                files=files,
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                return True, data.get("url"), None
+            else:
+                error_detail = response.json().get("detail", "Error al subir la imagen")
+                return False, None, error_detail
+
+        except requests.exceptions.ConnectionError:
+            return False, None, "No se pudo conectar con el servidor."
+
+        except requests.exceptions.Timeout:
+            return False, None, "La solicitud excedió el tiempo de espera."
+
+        except Exception as e:
+            return False, None, f"Error inesperado: {str(e)}"

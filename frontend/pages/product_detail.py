@@ -5,6 +5,7 @@ Muestra información completa, galería, personalización y opciones de compra.
 
 import streamlit as st
 from services.product_service import ProductService
+from components.navbar import show_success_toast, show_error_toast, show_info_toast
 from config import SESSION_KEYS
 
 
@@ -16,7 +17,7 @@ def render_product_detail_page():
     product_id = st.session_state.get("selected_product")
 
     if not product_id:
-        st.error("❌ No se ha seleccionado ningún producto")
+        show_error_toast("❌ No se ha seleccionado ningún producto")
         if st.button("🏠 Volver al inicio"):
             st.session_state[SESSION_KEYS["current_page"]] = "home"
             st.rerun()
@@ -26,7 +27,7 @@ def render_product_detail_page():
     product = ProductService.get_product_by_id(product_id)
 
     if not product:
-        st.error("❌ Producto no encontrado")
+        show_error_toast("❌ Producto no encontrado")
         if st.button("🏠 Volver al inicio"):
             st.session_state[SESSION_KEYS["current_page"]] = "home"
             st.rerun()
@@ -437,13 +438,82 @@ def add_to_cart(product: dict):
     # Agregar al carrito
     st.session_state['cart'].append(cart_item)
 
-    # Mostrar mensaje de éxito
-    st.success(f"✅ {product.get('name')} agregado al carrito")
-    st.balloons()
+    # Mostrar mensaje de éxito con animación elegante
+    show_success_toast(f"✅ {product.get('name')} agregado al carrito")
+    show_elegant_add_animation()
 
-    # Limpiar personalización
-    if 'enable_customization' in st.session_state:
-        st.session_state['enable_customization'] = False
+
+def show_elegant_add_animation():
+    """
+    Muestra una animación elegante al agregar un producto al carrito.
+    Usa los colores de la aplicación y un efecto de confeti sutil.
+    """
+    st.markdown("""
+    <style>
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(-20px); }
+        15% { opacity: 1; transform: translateY(0); }
+        85% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-20px); }
+    }
+
+    @keyframes confetti {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+
+    .success-notification {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(167, 139, 250, 0.4);
+        animation: fadeInOut 3s ease-in-out;
+        z-index: 9999;
+        font-weight: 600;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .confetti-piece {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background: #a78bfa;
+        top: -10px;
+        opacity: 0;
+        animation: confetti 3s ease-out;
+        z-index: 9998;
+    }
+    </style>
+
+    <div class="success-notification">
+        🎉 ¡Agregado con éxito!
+    </div>
+
+    """, unsafe_allow_html=True)
+
+    # Agregar piezas de confeti en posiciones aleatorias
+    import random
+    confetti_html = ""
+    for i in range(20):
+        left_pos = random.randint(10, 90)
+        delay = random.uniform(0, 0.5)
+        duration = random.uniform(2, 3)
+        color = random.choice(['#a78bfa', '#8b5cf6', '#7c3aed', '#c4b5fd'])
+        confetti_html += f"""
+        <div class="confetti-piece" style="
+            left: {left_pos}%;
+            animation-delay: {delay}s;
+            animation-duration: {duration}s;
+            background: {color};
+            border-radius: {'50%' if i % 2 == 0 else '0'};
+        "></div>
+        """
+
+    st.markdown(confetti_html, unsafe_allow_html=True)
 
 
 def add_to_favorites(product: dict):
@@ -460,7 +530,7 @@ def add_to_favorites(product: dict):
     # Verificar si ya está en favoritos
     product_id = product.get('id')
     if product_id in st.session_state['favorites']:
-        st.info("ℹ️ Este producto ya está en tus favoritos")
+        show_info_toast("ℹ️ Este producto ya está en tus favoritos")
     else:
         st.session_state['favorites'].append(product_id)
-        st.success("❤️ Producto agregado a favoritos")
+        show_success_toast("❤️ Producto agregado a favoritos")

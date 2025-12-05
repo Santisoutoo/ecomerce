@@ -14,6 +14,33 @@ def render_checkout_page():
     """
     st.markdown("# 💳 Checkout - Finalizar Compra")
 
+    # Verificar si hay que mostrar el modal de confirmación
+    if st.session_state.get('show_order_modal', False):
+        order = st.session_state.get('modal_order')
+        if order:
+            render_order_confirmation_modal(order)
+
+            # Botón para continuar (fuera del modal HTML pero estilizado)
+            st.markdown("<br><br><br><br><br><br><br><br><br><br><br><br><br>", unsafe_allow_html=True)
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                if st.button("✓ CONTINUAR", type="primary", use_container_width=True, key="continue_after_modal"):
+                    # Ahora sí, limpiar carrito y datos de checkout
+                    st.session_state['cart'] = []
+                    st.session_state['checkout_data'] = None
+                    st.session_state['checkout_step'] = 1
+                    st.session_state['applied_points_discount'] = 0
+                    st.session_state['points_to_use'] = 0
+
+                    # Limpiar flags del modal
+                    st.session_state['show_order_modal'] = False
+                    st.session_state['modal_order'] = None
+
+                    # Ir a página de confirmación
+                    st.session_state[SESSION_KEYS["current_page"]] = "order_confirmation"
+                    st.rerun()
+            return
+
     # Verificar que haya datos de checkout
     checkout_data = st.session_state.get('checkout_data')
 
@@ -120,29 +147,54 @@ def render_review_order_step(checkout_data: dict):
         discount = checkout_data['discount']
         total = checkout_data['total']
 
-        st.markdown(f"""
+        # Contenedor con borde
+        st.markdown("""
         <div style="
             background: #181633;
             border: 2px solid #2d2d3a;
             border-radius: 12px;
             padding: 1.5rem;
         ">
-            <div style="margin-bottom: 0.75rem;">
-                <span style="color: #d1d5db;">Subtotal:</span>
-                <span style="color: #ffffff; float: right; font-weight: 600;">{subtotal:.2f}€</span>
-            </div>
-            <div style="margin-bottom: 0.75rem;">
-                <span style="color: #d1d5db;">Envío:</span>
-                <span style="color: #ffffff; float: right; font-weight: 600;">{shipping:.2f}€</span>
-            </div>
-            {f'<div style="margin-bottom: 0.75rem;"><span style="color: #10b981;">Descuento:</span><span style="color: #10b981; float: right; font-weight: 600;">-{discount:.2f}€</span></div>' if discount > 0 else ''}
-            <hr style="margin: 1rem 0; border-color: #2d2d3a;">
-            <div>
-                <span style="color: #ffffff; font-size: 1.25rem; font-weight: 700;">TOTAL:</span>
-                <span style="color: #a78bfa; float: right; font-size: 1.5rem; font-weight: 700;">{total:.2f}€</span>
-            </div>
+        """, unsafe_allow_html=True)
+
+        # Subtotal
+        st.markdown(f"""
+        <div style="margin-bottom: 0.75rem;">
+            <span style="color: #d1d5db;">Subtotal:</span>
+            <span style="color: #ffffff; float: right; font-weight: 600;">{subtotal:.2f}€</span>
         </div>
         """, unsafe_allow_html=True)
+
+        # Envío
+        st.markdown(f"""
+        <div style="margin-bottom: 0.75rem;">
+            <span style="color: #d1d5db;">Envío:</span>
+            <span style="color: #ffffff; float: right; font-weight: 600;">{shipping:.2f}€</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Descuento (solo si existe)
+        if discount > 0:
+            st.markdown(f"""
+            <div style="margin-bottom: 0.75rem;">
+                <span style="color: #10b981;">Descuento:</span>
+                <span style="color: #10b981; float: right; font-weight: 600;">-{discount:.2f}€</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Separador
+        st.markdown('<hr style="margin: 1rem 0; border-color: #2d2d3a;">', unsafe_allow_html=True)
+
+        # Total
+        st.markdown(f"""
+        <div>
+            <span style="color: #ffffff; font-size: 1.25rem; font-weight: 700;">TOTAL:</span>
+            <span style="color: #a78bfa; float: right; font-size: 1.5rem; font-weight: 700;">{total:.2f}€</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Cerrar contenedor
+        st.markdown("</div>", unsafe_allow_html=True)
 
         # Puntos a ganar
         st.markdown(f"""
@@ -190,35 +242,34 @@ def render_checkout_item(item: dict):
     cantidad = item.get('cantidad', 1)
     precio_total = (item.get('precio_unitario', 0) + item.get('precio_personalizacion', 0)) * cantidad
 
-    st.markdown(f"""
-    <div style="
-        background: #181633;
-        border: 1px solid #2d2d3a;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    ">
-        <img src="{item.get('imagen_url', 'https://via.placeholder.com/80')}"
-             style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;"
-             alt="{item.get('name', 'Producto')}">
-        <div style="flex: 1;">
-            <p style="color: #a78bfa; font-size: 0.75rem; margin: 0;">{item.get('equipo', '')}</p>
-            <p style="color: #ffffff; font-weight: 600; margin: 0.25rem 0;">{item.get('name', '')}</p>
+    # Usar columnas para layout
+    col1, col2, col3 = st.columns([1, 4, 1.5])
+
+    with col1:
+        st.image(item.get('imagen_url', 'https://via.placeholder.com/80'), width=80)
+
+    with col2:
+        st.markdown(f"""
+        <div>
+            <p style="color: #a78bfa; font-size: 0.75rem; margin: 0 0 0.25rem 0;">{item.get('equipo', '')}</p>
+            <p style="color: #ffffff; font-weight: 600; font-size: 0.95rem; margin: 0 0 0.25rem 0;">{item.get('name', '')}</p>
             <p style="color: #9ca3af; font-size: 0.875rem; margin: 0;">
                 Talla: {item.get('talla', '-')} | Cantidad: {cantidad}
             </p>
-            {f"<p style='color: #a78bfa; font-size: 0.75rem; margin: 0.25rem 0;'>✨ {personalizacion.get('nombre', '')} #{personalizacion.get('numero', '')}</p>" if personalizacion else ""}
+            {f"<p style='color: #a78bfa; font-size: 0.75rem; margin: 0.25rem 0 0 0;'>✨ {personalizacion.get('nombre', '')} #{personalizacion.get('numero', '')}</p>" if personalizacion else ""}
         </div>
-        <div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(f"""
+        <div style="text-align: right; padding-top: 0.5rem;">
             <p style="color: #a78bfa; font-size: 1.25rem; font-weight: 700; margin: 0;">
                 {precio_total:.2f}€
             </p>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+
+    st.markdown("<hr style='margin: 0.5rem 0; border-color: #2d2d3a;'>", unsafe_allow_html=True)
 
 
 def render_shipping_address_step():
@@ -298,10 +349,10 @@ def render_shipping_address_step():
         col1, col2, col3 = st.columns([1, 2, 1])
 
         with col1:
-            back_button = st.form_submit_button("⬅️ Volver", use_container_width=True)
+            back_button = st.form_submit_button("⬅️ Volver")
 
         with col3:
-            submit_button = st.form_submit_button("Siguiente ➡️", type="primary", use_container_width=True)
+            submit_button = st.form_submit_button("Siguiente ➡️", type="primary")
 
         # Procesar formulario
         if back_button:
@@ -485,19 +536,15 @@ def confirm_order(payment_method: str):
     new_points = current_points + order['points_earned'] - order['points_used']
     st.session_state['user_points'] = new_points
 
-    # Vaciar carrito y datos de checkout
-    st.session_state['cart'] = []
-    st.session_state['checkout_data'] = None
-    st.session_state['checkout_step'] = 1
-    st.session_state['applied_points_discount'] = 0
-    st.session_state['points_to_use'] = 0
-
     # Guardar número de pedido para la página de confirmación
     st.session_state['last_order_number'] = order_number
 
-    # Ir a página de confirmación
-    st.session_state[SESSION_KEYS["current_page"]] = "order_confirmation"
-    st.success("✅ ¡Pedido confirmado!")
+    # Guardar el pedido para mostrar en el modal
+    # NO limpiamos el carrito ni checkout_data todavía - se hará después del modal
+    st.session_state['show_order_modal'] = True
+    st.session_state['modal_order'] = order
+
+    # Mostrar balloons
     st.balloons()
     st.rerun()
 
@@ -513,3 +560,182 @@ def generate_order_number() -> str:
     orders_today = len([o for o in st.session_state.get('orders', []) if date_str in o.get('order_number', '')])
     order_num = f"ORD-{date_str}-{orders_today + 1:04d}"
     return order_num
+
+
+def render_order_confirmation_modal(order: dict):
+    """
+    Renderiza modal de confirmación de pedido con animación y resumen.
+
+    Args:
+        order: Diccionario con datos del pedido
+    """
+    order_number = order.get('order_number', 'N/A')
+    items = order.get('items', [])
+    total = order.get('total', 0)
+    points_earned = order.get('points_earned', 0)
+
+    # Construir lista de productos
+    products_html = ""
+    for item in items[:3]:
+        name = item.get('name', 'Producto')
+        cantidad = item.get('cantidad', 1)
+        products_html += f"<li>{cantidad}x {name}</li>"
+
+    if len(items) > 3:
+        products_html += f"<li style='color: #9ca3af; font-style: italic;'>... y {len(items) - 3} producto(s) más</li>"
+
+    # CSS
+    st.markdown("""
+        <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translate(-50%, -40%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .order-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .order-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1e1b4b 0%, #181633 100%);
+            border: 2px solid #a78bfa;
+            border-radius: 16px;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(167, 139, 250, 0.4);
+            z-index: 100001;
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        .order-modal-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .order-modal-title {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .order-modal-order-number {
+            color: #a78bfa;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            margin: 0 0 1rem 0;
+        }
+
+        .order-modal-section {
+            background: rgba(45, 45, 58, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .order-modal-section-title {
+            color: #a78bfa;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .order-modal-products {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .order-modal-products li {
+            color: #d1d5db;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .order-modal-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.75rem;
+            border-top: 2px solid #2d2d3a;
+        }
+
+        .order-modal-total-label {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .order-modal-total-value {
+            color: #a78bfa;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .order-modal-points {
+            color: #10b981;
+            text-align: center;
+            font-size: 0.875rem;
+            margin: 0.75rem 0;
+            font-weight: 600;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Modal HTML completo
+    modal_html = f"""
+        <div class="order-modal-overlay">
+            <div class="order-modal">
+                <div class="order-modal-icon">✅</div>
+                <h2 class="order-modal-title">¡Pedido Procesado!</h2>
+                <p class="order-modal-order-number">#{order_number}</p>
+
+                <div class="order-modal-section">
+                    <h3 class="order-modal-section-title">📦 Resumen del Pedido</h3>
+                    <ul class="order-modal-products">
+                        {products_html}
+                    </ul>
+                    <div class="order-modal-total">
+                        <span class="order-modal-total-label">TOTAL:</span>
+                        <span class="order-modal-total-value">{total:.2f}€</span>
+                    </div>
+                </div>
+
+                <p class="order-modal-points">✨ Has ganado {points_earned} puntos</p>
+            </div>
+        </div>
+    """
+
+    st.markdown(modal_html, unsafe_allow_html=True)

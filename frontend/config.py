@@ -33,6 +33,7 @@ SESSION_KEYS = {
     "access_token": "access_token",
     "user_id": "user_id",
     "user_email": "user_email",
+    "es_admin": "es_admin",
     "current_page": "current_page",
     "show_welcome": "show_welcome"
 }
