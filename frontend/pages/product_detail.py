@@ -5,6 +5,7 @@ Muestra información completa, galería, personalización y opciones de compra.
 
 import streamlit as st
 from services.product_service import ProductService
+from components.navbar import show_success_toast, show_error_toast, show_info_toast
 from config import SESSION_KEYS
 
 
@@ -16,7 +17,7 @@ def render_product_detail_page():
     product_id = st.session_state.get("selected_product")
 
     if not product_id:
-        st.error("❌ No se ha seleccionado ningún producto")
+        show_error_toast("❌ No se ha seleccionado ningún producto")
         if st.button("🏠 Volver al inicio"):
             st.session_state[SESSION_KEYS["current_page"]] = "home"
             st.rerun()
@@ -26,7 +27,7 @@ def render_product_detail_page():
     product = ProductService.get_product_by_id(product_id)
 
     if not product:
-        st.error("❌ Producto no encontrado")
+        show_error_toast("❌ Producto no encontrado")
         if st.button("🏠 Volver al inicio"):
             st.session_state[SESSION_KEYS["current_page"]] = "home"
             st.rerun()
@@ -438,7 +439,7 @@ def add_to_cart(product: dict):
     st.session_state['cart'].append(cart_item)
 
     # Mostrar mensaje de éxito
-    st.success(f"✅ {product.get('name')} agregado al carrito")
+    show_success_toast(f"✅ {product.get('name')} agregado al carrito")
     st.balloons()
 
     # Limpiar personalización
@@ -460,7 +461,7 @@ def add_to_favorites(product: dict):
     # Verificar si ya está en favoritos
     product_id = product.get('id')
     if product_id in st.session_state['favorites']:
-        st.info("ℹ️ Este producto ya está en tus favoritos")
+        show_info_toast("ℹ️ Este producto ya está en tus favoritos")
     else:
         st.session_state['favorites'].append(product_id)
-        st.success("❤️ Producto agregado a favoritos")
+        show_success_toast("❤️ Producto agregado a favoritos")

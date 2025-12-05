@@ -1,11 +1,15 @@
 # Framework Web
 streamlit==1.29.0
 
+# Componentes UI adicionales
+hydralit-components==1.0.10
+
 # HTTP Requests para comunicación con backend
 requests==2.32.3
 
 # Análisis de datos para dashboard admin
 pandas==2.1.4
+plotly==5.18.0
 
 # Utilidades
 python-dotenv==1.0.0

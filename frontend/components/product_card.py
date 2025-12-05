@@ -4,6 +4,7 @@ Muestra información del producto con imagen, precio y acciones.
 """
 
 import streamlit as st
+from components.navbar import show_welcome_toast, show_error_toast, show_info_toast
 
 
 def render_product_card(product: dict, key_prefix: str = ""):
@@ -153,7 +154,7 @@ def render_product_card(product: dict, key_prefix: str = ""):
     if has_stock:
         if st.button("🛒 Agregar al Carrito", key=f"{key_prefix}_add_{product.get('id')}", use_container_width=True, type="primary"):
             st.session_state[f"add_to_cart_{product.get('id')}"] = True
-            st.toast(f"✅ {product.get('name')} agregado al carrito", icon="🛒")
+            show_success_toast(f"✅ {product.get('name')} agregado al carrito")
 
 
 def render_product_grid(products: list, key_prefix: str = "grid"):

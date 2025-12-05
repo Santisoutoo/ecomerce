@@ -5,6 +5,7 @@ Muestra productos agregados, permite editar cantidades y proceder al checkout.
 
 import streamlit as st
 from components.cart_item import render_cart_item
+from components.navbar import show_success_toast, show_error_toast
 from config import SESSION_KEYS
 
 
@@ -282,7 +283,7 @@ def clear_cart():
     if 'points_to_use' in st.session_state:
         del st.session_state['points_to_use']
 
-    st.success("✅ Carrito vaciado")
+    show_success_toast("✅ Carrito vaciado")
     st.rerun()
 
 
@@ -293,7 +294,7 @@ def proceed_to_checkout():
     # Validar que el carrito no esté vacío
     cart = st.session_state.get('cart', [])
     if not cart:
-        st.error("❌ El carrito está vacío")
+        show_error_toast("❌ El carrito está vacío")
         return
 
     # Guardar información del pedido para checkout
@@ -314,5 +315,5 @@ def proceed_to_checkout():
 
     # Navegar a checkout
     st.session_state[SESSION_KEYS["current_page"]] = "checkout"
-    st.success("✅ Procediendo al pago...")
+    show_success_toast("✅ Procediendo al pago...")
     st.rerun()
