@@ -75,8 +75,9 @@ def is_admin() -> bool:
     Returns:
         bool: True si es admin, False en caso contrario
     """
+    # Verificar si el email contiene "admin"
     user_email = st.session_state.get(SESSION_KEYS["user_email"], "")
-    return "admin" in user_email.lower()
+    return "admin" in user_email.lower() if user_email else False
 
 
 def render_access_denied():

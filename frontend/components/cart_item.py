@@ -33,8 +33,8 @@ def render_cart_item(item: dict, index: int):
         </style>
         """, unsafe_allow_html=True)
 
-        # Layout de 4 columnas: Imagen | Info | Cantidad | Precio
-        col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
+        # Layout principal: Imagen | Info | Cantidad (botones) | Precio
+        col1, col2, col3, col4, col5, col6 = st.columns([1.5, 4, 1, 1.5, 1, 2.5])
 
         with col1:
             # Imagen del producto
@@ -89,43 +89,37 @@ def render_cart_item(item: dict, index: int):
                 </div>
                 """, unsafe_allow_html=True)
 
+        # Botón Menos
         with col3:
-            # Control de cantidad
             st.markdown("<p style='color: #9ca3af; font-size: 0.875rem; margin: 0 0 0.5rem 0;'>Cantidad</p>", unsafe_allow_html=True)
+            if st.button("➖", key=f"minus_{index}", use_container_width=True):
+                update_quantity(index, item.get('cantidad', 1) - 1)
 
-            # Botones de cantidad
-            col_minus, col_qty, col_plus = st.columns([1, 2, 1])
-
-            with col_minus:
-                if st.button("➖", key=f"minus_{index}", use_container_width=True):
-                    update_quantity(index, item.get('cantidad', 1) - 1)
-
-            with col_qty:
-                st.markdown(f"""
-                <div style="
-                    background: #1e1b4b;
-                    border: 1px solid #2d2d3a;
-                    border-radius: 8px;
-                    padding: 0.5rem;
-                    text-align: center;
-                    color: #ffffff;
-                    font-weight: 600;
-                    font-size: 1.1rem;
-                ">
-                    {item.get('cantidad', 1)}
-                </div>
-                """, unsafe_allow_html=True)
-
-            with col_plus:
-                if st.button("➕", key=f"plus_{index}", use_container_width=True):
-                    update_quantity(index, item.get('cantidad', 1) + 1)
-
-            # Botón eliminar
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🗑️ Eliminar", key=f"remove_{index}", use_container_width=True, type="secondary"):
-                remove_item(index)
-
+        # Cantidad actual
         with col4:
+            st.markdown("<p style='color: transparent; font-size: 0.875rem; margin: 0 0 0.5rem 0;'>.</p>", unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="
+                background: #1e1b4b;
+                border: 1px solid #2d2d3a;
+                border-radius: 8px;
+                padding: 0.5rem;
+                text-align: center;
+                color: #ffffff;
+                font-weight: 600;
+                font-size: 1.1rem;
+            ">
+                {item.get('cantidad', 1)}
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Botón Más
+        with col5:
+            st.markdown("<p style='color: transparent; font-size: 0.875rem; margin: 0 0 0.5rem 0;'>.</p>", unsafe_allow_html=True)
+            if st.button("➕", key=f"plus_{index}", use_container_width=True):
+                update_quantity(index, item.get('cantidad', 1) + 1)
+
+        with col6:
             # Precios
             precio_unitario = item.get('precio_unitario', 0)
             precio_personalizacion = item.get('precio_personalizacion', 0)
@@ -138,7 +132,7 @@ def render_cart_item(item: dict, index: int):
             st.markdown(f"""
             <div style="margin-bottom: 0.5rem;">
                 <p style="color: #d1d5db; font-size: 0.875rem; margin: 0;">
-                    Precio base: <strong>{precio_unitario:.2f}€</strong>
+                    Base: <strong>{precio_unitario:.2f}€</strong>
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -148,7 +142,7 @@ def render_cart_item(item: dict, index: int):
                 st.markdown(f"""
                 <div style="margin-bottom: 0.5rem;">
                     <p style="color: #a78bfa; font-size: 0.875rem; margin: 0;">
-                        + Personalización: <strong>{precio_personalizacion:.2f}€</strong>
+                        + Extra: <strong>{precio_personalizacion:.2f}€</strong>
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -161,14 +155,20 @@ def render_cart_item(item: dict, index: int):
                 border-radius: 8px;
                 padding: 0.75rem;
                 text-align: center;
-                margin-top: 1rem;
             ">
                 <p style="color: #9ca3af; font-size: 0.75rem; margin: 0 0 0.25rem 0;">Subtotal</p>
-                <p style="color: #a78bfa; font-size: 1.5rem; font-weight: 700; margin: 0;">
+                <p style="color: #a78bfa; font-size: 1.25rem; font-weight: 700; margin: 0;">
                     {subtotal:.2f}€
                 </p>
             </div>
             """, unsafe_allow_html=True)
+
+        # Botón eliminar (fuera de las columnas)
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_empty, col_btn = st.columns([8, 2])
+        with col_btn:
+            if st.button("🗑️ Eliminar", key=f"remove_{index}", use_container_width=True, type="secondary"):
+                remove_item(index)
 
         # Separador
         st.markdown("<hr style='margin: 1rem 0; border-color: #2d2d3a;'>", unsafe_allow_html=True)

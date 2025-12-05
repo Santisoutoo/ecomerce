@@ -170,9 +170,8 @@ def is_admin_user(user_email: str) -> bool:
     Returns:
         bool: True si es admin, False en caso contrario
     """
-    # Mock: Por ahora, cualquier email que contenga "admin" es admin
-    # En producción, esto vendría de la base de datos
-    return "admin" in user_email.lower()
+    # Verificar si el email contiene "admin"
+    return "admin" in user_email.lower() if user_email else False
 
 
 def logout_user():

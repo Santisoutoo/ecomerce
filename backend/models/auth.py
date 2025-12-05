@@ -16,6 +16,7 @@ class SignUpRequest(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=50, description="Nombre del usuario")
     apellidos: str = Field(..., min_length=1, max_length=100, description="Apellidos del usuario")
     telefono: Optional[str] = Field(None, description="Teléfono de contacto")
+    foto_perfil: Optional[str] = Field(None, description="URL de la foto de perfil")
 
     @validator('telefono')
     def validate_phone(cls, v):
@@ -31,7 +32,8 @@ class SignUpRequest(BaseModel):
                 "password": "Password123",
                 "nombre": "Juan",
                 "apellidos": "Pérez García",
-                "telefono": "612345678"
+                "telefono": "612345678",
+                "foto_perfil": "https://storage.googleapis.com/bucket/profile.jpg"
             }
         }
 
@@ -81,6 +83,7 @@ class UserResponse(BaseModel):
     nombre: Optional[str] = Field(None, description="Nombre del usuario")
     apellidos: Optional[str] = Field(None, description="Apellidos del usuario")
     telefono: Optional[str] = Field(None, description="Teléfono")
+    foto_perfil: Optional[str] = Field(None, description="URL de la foto de perfil")
     puntos_fidelizacion: int = Field(default=0, description="Puntos acumulados")
     es_admin: bool = Field(default=False, description="Si es administrador")
 
@@ -92,6 +95,7 @@ class UserResponse(BaseModel):
                 "nombre": "Juan",
                 "apellidos": "Pérez García",
                 "telefono": "612345678",
+                "foto_perfil": "https://storage.googleapis.com/bucket/profile.jpg",
                 "puntos_fidelizacion": 500,
                 "es_admin": False
             }

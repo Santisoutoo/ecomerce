@@ -4,7 +4,7 @@ Proporciona acceso a Realtime Database y Firebase Authentication.
 """
 
 import firebase_admin
-from firebase_admin import credentials, auth, db
+from firebase_admin import credentials, auth, db, storage
 from functools import lru_cache
 from .settings import FIREBASE_CREDENTIALS_PATH
 import os
@@ -91,3 +91,15 @@ def get_auth_client():
     """
     initialize_firebase()
     return auth
+
+
+def get_storage_bucket():
+    """
+    Obtiene una referencia al bucket de Firebase Storage.
+
+    Returns:
+        storage.Bucket: Referencia al bucket de almacenamiento
+    """
+    initialize_firebase()
+    bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET", "sportstyle-store.firebasestorage.app")
+    return storage.bucket(bucket_name)

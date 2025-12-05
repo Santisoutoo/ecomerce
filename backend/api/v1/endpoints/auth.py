@@ -3,7 +3,7 @@ Endpoints de autenticación para SportStyle Store API.
 Gestiona registro, login, logout y validación de usuarios con Firebase.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
 from models.auth import (
     SignUpRequest,
     SignInRequest,
@@ -12,9 +12,11 @@ from models.auth import (
     MessageResponse
 )
 from core.security import create_access_token, get_current_user
-from config.firebase_config import get_auth_client, get_database
+from config.firebase_config import get_auth_client, get_database, get_storage_bucket
 from datetime import datetime, timedelta
 from config.settings import ACCESS_TOKEN_EXPIRE_MINUTES
+import uuid
+import os
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -51,6 +53,7 @@ async def signup(request: SignUpRequest):
             "nombre": request.nombre,
             "apellidos": request.apellidos,
             "telefono": request.telefono or "",
+            "foto_perfil": request.foto_perfil or "",
             "fecha_registro": datetime.now().isoformat(),
             "puntos_fidelizacion": 0,
             "es_admin": False,
@@ -156,21 +159,19 @@ async def get_current_user_profile(current_user: dict = Depends(get_current_user
         UserResponse: Información completa del usuario
 
     Raises:
-        HTTPException 404: Si el perfil no existe en Firestore
+        HTTPException 404: Si el perfil no existe en Realtime Database
     """
     try:
-        db = get_firestore_client()
+        database = get_database()
 
-        # Obtener datos del usuario desde Firestore
-        user_doc = db.collection("users").document(current_user["uid"]).get()
+        # Obtener datos del usuario desde Realtime Database
+        user_data = database.child('users').child(current_user["uid"]).get().val()
 
-        if not user_doc.exists:
+        if not user_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User profile not found"
             )
-
-        user_data = user_doc.to_dict()
 
         return UserResponse(
             uid=current_user["uid"],
@@ -178,6 +179,7 @@ async def get_current_user_profile(current_user: dict = Depends(get_current_user
             nombre=user_data.get("nombre"),
             apellidos=user_data.get("apellidos"),
             telefono=user_data.get("telefono"),
+            foto_perfil=user_data.get("foto_perfil"),
             puntos_fidelizacion=user_data.get("puntos_fidelizacion", 0),
             es_admin=user_data.get("es_admin", False)
         )
@@ -229,3 +231,77 @@ async def verify_token(current_user: dict = Depends(get_current_user)):
         "user_id": current_user["uid"],
         "email": current_user["email"]
     }
+
+
+@router.post("/upload-profile-picture")
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Sube una foto de perfil a Firebase Storage y devuelve la URL pública.
+
+    Args:
+        file: Archivo de imagen a subir
+        current_user: Usuario actual desde el token JWT
+
+    Returns:
+        dict: URL pública de la imagen subida
+
+    Raises:
+        HTTPException 400: Si el archivo no es válido
+        HTTPException 413: Si el archivo es demasiado grande
+    """
+    try:
+        # Validar tipo de archivo
+        allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
+            )
+
+        # Validar tamaño (máximo 5MB)
+        file_content = await file.read()
+        file_size_mb = len(file_content) / (1024 * 1024)
+        if file_size_mb > 5:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="File size exceeds 5MB limit"
+            )
+
+        # Generar nombre único para el archivo
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"profile_pictures/{current_user['uid']}_{uuid.uuid4()}{file_extension}"
+
+        # Subir a Firebase Storage
+        bucket = get_storage_bucket()
+        blob = bucket.blob(unique_filename)
+        blob.upload_from_string(file_content, content_type=file.content_type)
+
+        # Hacer el archivo público
+        blob.make_public()
+
+        # Obtener URL pública
+        public_url = blob.public_url
+
+        # Actualizar el perfil del usuario con la URL de la foto
+        database = get_database()
+        database.child('users').child(current_user['uid']).update({
+            'foto_perfil': public_url
+        })
+
+        return {
+            "url": public_url,
+            "filename": unique_filename,
+            "size_mb": round(file_size_mb, 2)
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error uploading file: {str(e)}"
+        )
