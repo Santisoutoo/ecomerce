@@ -466,7 +466,34 @@
       "active": true
     }
   ],
-  "users": [],
+  "users": [
+    {
+      "id": "1",
+      "nombre": "Juan",
+      "apellido": "Pérez García",
+      "email": "juan.perez@example.com",
+      "tlf": "+34 610 123 456",
+      "password": "$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+      "avatar": "https://res.cloudinary.com/dlrrvenn1/image/upload/v1734567890/avatars/default_avatar.jpg"
+    }
+  ],
   "orders": [],
-  "cart_items": []
+  "cart_items": [
+    {
+      "id": "cart_001",
+      "user_id": "user_001",
+      "product_id": "prod_001",
+      "quantity": 2,
+      "size": "L",
+      "price": 89.99
+    },
+    {
+      "id": "cart_002",
+      "user_id": "user_001",
+      "product_id": "prod_005",
+      "quantity": 1,
+      "size": "M",
+      "price": 79.99
+    }
+  ]
 }
