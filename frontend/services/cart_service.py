@@ -38,6 +38,11 @@ class CartService:
         return st.session_state.get('user_id')
 
     @staticmethod
+    def _get_user_email() -> Optional[str]:
+        """Obtiene el email del usuario autenticado."""
+        return st.session_state.get('user_email')
+
+    @staticmethod
     def _sync_with_firebase(user_id: str):
         """
         Sincroniza el carrito local con Firebase.
@@ -49,8 +54,11 @@ class CartService:
             return
 
         try:
+            # Obtener email del usuario
+            user_email = CartService._get_user_email()
+
             # Obtener carrito de Firebase
-            firebase_cart = BackendCartService.get_cart(user_id)
+            firebase_cart = BackendCartService.get_cart(user_id, user_email)
 
             # Actualizar session_state con datos de Firebase
             st.session_state[CartService.CART_KEY] = [
@@ -175,6 +183,9 @@ class CartService:
         user_id = CartService._get_user_id()
         if user_id and FIREBASE_AVAILABLE:
             try:
+                # Obtener email del usuario
+                user_email = CartService._get_user_email()
+
                 # Crear personalización si existe
                 pers_obj = None
                 if personalization:
@@ -191,7 +202,7 @@ class CartService:
                     personalization=pers_obj
                 )
 
-                firebase_item = BackendCartService.add_item(user_id, item_create, product)
+                firebase_item = BackendCartService.add_item(user_id, item_create, product, user_email)
 
                 # Actualizar el item local con el ID de Firebase
                 cart_item['id'] = firebase_item.id

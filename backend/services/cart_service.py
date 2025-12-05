@@ -66,12 +66,13 @@ class CartService:
         return (unit_price + personalization_price) * quantity
 
     @staticmethod
-    def get_cart(user_id: str) -> Cart:
+    def get_cart(user_id: str, user_email: str = None) -> Cart:
         """
         Obtiene el carrito completo de un usuario.
 
         Args:
             user_id: ID del usuario
+            user_email: Email del usuario (opcional, se usa si el carrito está vacío)
 
         Returns:
             Cart: Carrito del usuario
@@ -80,9 +81,10 @@ class CartService:
         cart_data = cart_ref.get()
 
         if not cart_data:
-            # Carrito vacío
+            # Carrito vacío - usar email proporcionado o placeholder
             return Cart(
                 user_id=user_id,
+                user_email=user_email or "unknown@email.com",
                 items=[],
                 total_items=0,
                 subtotal=0.0,
@@ -120,6 +122,7 @@ class CartService:
 
         return Cart(
             user_id=user_id,
+            user_email=cart_data.get('user_email', user_email or "unknown@email.com"),
             items=items,
             total_items=cart_data.get('total_items', len(items)),
             subtotal=cart_data.get('subtotal', 0.0),
@@ -127,7 +130,7 @@ class CartService:
         )
 
     @staticmethod
-    def add_item(user_id: str, item: CartItemCreate, product_data: Dict) -> CartItem:
+    def add_item(user_id: str, item: CartItemCreate, product_data: Dict, user_email: str = None) -> CartItem:
         """
         Añade un item al carrito del usuario.
 
@@ -135,6 +138,7 @@ class CartService:
             user_id: ID del usuario
             item: Datos del item a añadir
             product_data: Datos completos del producto
+            user_email: Email del usuario (opcional)
 
         Returns:
             CartItem: Item añadido al carrito
@@ -173,8 +177,8 @@ class CartService:
         # Guardar item en Firebase
         cart_ref.child('items').child(item_id).set(item_data)
 
-        # Actualizar totales del carrito
-        CartService._update_cart_totals(user_id)
+        # Actualizar totales del carrito (incluye user_email)
+        CartService._update_cart_totals(user_id, user_email)
 
         # Retornar CartItem creado
         return CartItem(
@@ -311,12 +315,13 @@ class CartService:
         return True
 
     @staticmethod
-    def _update_cart_totals(user_id: str):
+    def _update_cart_totals(user_id: str, user_email: str = None):
         """
         Actualiza los totales del carrito (total_items y subtotal).
 
         Args:
             user_id: ID del usuario
+            user_email: Email del usuario (opcional)
         """
         cart_ref = CartService._get_cart_ref(user_id)
         items_dict = cart_ref.child('items').get() or {}
@@ -328,12 +333,19 @@ class CartService:
             total_items += item_data.get('quantity', 0)
             subtotal += item_data.get('subtotal', 0.0)
 
-        # Actualizar totales
-        cart_ref.update({
+        # Preparar datos a actualizar
+        update_data = {
             'total_items': total_items,
             'subtotal': round(subtotal, 2),
             'updated_at': datetime.utcnow().isoformat()
-        })
+        }
+
+        # Agregar user_email si se proporciona
+        if user_email:
+            update_data['user_email'] = user_email
+
+        # Actualizar totales
+        cart_ref.update(update_data)
 
     @staticmethod
     def get_cart_count(user_id: str) -> int:

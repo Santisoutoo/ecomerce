@@ -340,7 +340,8 @@ class CartItemUpdate(BaseModel):
 
 class Cart(BaseModel):
     """Modelo completo del carrito de compras."""
-    user_id: str = Field(..., description="ID del usuario")
+    user_id: str = Field(..., description="ID del usuario en Firebase Auth")
+    user_email: EmailStr = Field(..., description="Email del usuario en texto plano")
     items: List[CartItem] = Field(default_factory=list, description="Items del carrito")
     total_items: int = Field(default=0, ge=0, description="Total de items en el carrito")
     subtotal: float = Field(default=0, ge=0, description="Subtotal del carrito")
@@ -349,11 +350,12 @@ class Cart(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "user_id": "user_001",
+                "user_id": "fZlBToT35rPVcuUg3SO1oTuXwM22",
+                "user_email": "hola@gmail.com",
                 "items": [
                     {
                         "id": "cart_001",
-                        "user_id": "user_001",
+                        "user_id": "fZlBToT35rPVcuUg3SO1oTuXwM22",
                         "product_id": "prod_001",
                         "product_name": "Camiseta FC Barcelona",
                         "product_image": "https://example.com/image.jpg",
@@ -381,9 +383,13 @@ class OrderItem(BaseModel):
     """Modelo de item dentro de un pedido."""
     product_id: str = Field(..., description="ID del producto")
     product_name: str = Field(..., description="Nombre del producto")
+    product_image: str = Field(..., description="URL de la imagen del producto")
+    team: str = Field(..., description="Equipo del producto")
     quantity: int = Field(..., gt=0, description="Cantidad")
-    size: SizeEnum = Field(..., description="Talla")
+    size: str = Field(..., description="Talla")
     unit_price: float = Field(..., gt=0, description="Precio unitario")
+    personalization_price: float = Field(default=0, ge=0, description="Precio de personalización")
+    personalization: Optional[Personalization] = Field(None, description="Datos de personalización")
     subtotal: float = Field(..., gt=0, description="Subtotal (precio × cantidad)")
 
 
@@ -398,8 +404,9 @@ class ShippingAddress(BaseModel):
 
 class Order(BaseModel):
     """Modelo completo de pedido."""
-    id: str = Field(..., description="ID único del pedido")
-    user_id: str = Field(..., description="ID del usuario")
+    order_id: str = Field(..., description="ID único del pedido (ej: ORD-20241205-001)")
+    user_id: str = Field(..., description="ID del usuario en Firebase Auth")
+    user_email: EmailStr = Field(..., description="Email del usuario como identificador del pedido")
     items: List[OrderItem] = Field(..., min_items=1, description="Items del pedido")
     subtotal: float = Field(..., gt=0, description="Subtotal de productos")
     shipping_cost: float = Field(default=0, ge=0, description="Costo de envío")
@@ -414,22 +421,30 @@ class Order(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "id": "order_001",
-                "user_id": "user_001",
+                "order_id": "ORD-20241205-001",
+                "user_id": "fZlBToT35rPVcuUg3SO1oTuXwM22",
+                "user_email": "hola@gmail.com",
                 "items": [
                     {
                         "product_id": "prod_001",
                         "product_name": "Camiseta FC Barcelona",
+                        "product_image": "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772154/camiseta_barcelona_lgranp.jpg",
+                        "team": "Barcelona",
                         "quantity": 2,
                         "size": "L",
                         "unit_price": 89.99,
-                        "subtotal": 179.98
+                        "personalization_price": 10.00,
+                        "personalization": {
+                            "nombre": "MESSI",
+                            "numero": 10
+                        },
+                        "subtotal": 199.98
                     }
                 ],
-                "subtotal": 179.98,
+                "subtotal": 199.98,
                 "shipping_cost": 5.00,
-                "tax": 37.80,
-                "total": 222.78,
+                "tax": 43.05,
+                "total": 248.03,
                 "status": "pending",
                 "shipping_address": {
                     "street": "Calle Ejemplo 123",
