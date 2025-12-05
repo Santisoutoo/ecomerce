@@ -7,8 +7,8 @@ from typing import Optional, List
 from datetime import datetime
 import uuid
 from firebase_admin import db
-from backend.config.firebase_config import get_database
-from backend.models.models import (
+from config.firebase_config import get_database
+from models.models import (
     Order, OrderItem, OrderCreate, OrderUpdate,
     OrderStatusEnum, ShippingAddress, Personalization
 )

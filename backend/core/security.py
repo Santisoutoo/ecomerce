@@ -1,6 +1,6 @@
 """
 Módulo de seguridad para manejo de autenticación y autorización.
-Implementa JWT tokens y validación con Firebase Authentication.
+Implementa JWT tokens y validación con Firebase Realtime Database.
 """
 
 from datetime import datetime, timedelta
@@ -9,7 +9,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from config.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from config.firebase_config import get_auth_client
+from services.user_service import UserService
 
 
 # Esquema de seguridad HTTP Bearer
@@ -71,7 +71,7 @@ async def get_current_user(
 ):
     """
     Obtiene el usuario actual desde el token JWT.
-    Valida el token contra Firebase Authentication.
+    Valida el token contra Firebase Realtime Database.
 
     Args:
         credentials: Credenciales HTTP Bearer del header Authorization
@@ -88,51 +88,44 @@ async def get_current_user(
     payload = decode_access_token(token)
 
     user_id: str = payload.get("sub")
-    if user_id is None:
+    email: str = payload.get("email")
+
+    if user_id is None or email is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials"
         )
 
-    # Validar usuario en Firebase
+    # Validar usuario en Firebase Realtime Database
     try:
-        auth_client = get_auth_client()
-        user = auth_client.get_user(user_id)
+        user = UserService.get_user_by_id(user_id)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found or token expired"
+            )
+
+        # Verificar que el usuario esté activo
+        if not user.get('activo', True):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User account is inactive"
+            )
 
         return {
-            "uid": user.uid,
-            "email": user.email,
-            "display_name": user.display_name,
-            "email_verified": user.email_verified
+            "uid": user['user_id'],
+            "email": user['email'],
+            "nombre": user.get('nombre'),
+            "apellidos": user.get('apellidos'),
+            "es_admin": user.get('es_admin', False)
         }
+
+    except HTTPException:
+        raise
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or token expired"
-        )
-
-
-async def verify_firebase_token(token: str) -> dict:
-    """
-    Verifica un token de Firebase Authentication directamente.
-    Útil para validar tokens generados por el SDK de Firebase en el cliente.
-
-    Args:
-        token: ID token de Firebase
-
-    Returns:
-        dict: Información del usuario decodificada
-
-    Raises:
-        HTTPException: Si el token es inválido
-    """
-    try:
-        auth_client = get_auth_client()
-        decoded_token = auth_client.verify_id_token(token)
-        return decoded_token
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid Firebase token: {str(e)}"
         )
