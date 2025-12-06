@@ -131,14 +131,39 @@ python backend/migrations/seed_products.py
 
 ## 🎮 Uso
 
-### Ejecutar la aplicación web
+### Opción 1: Ejecutar solo el frontend (recomendado para desarrollo)
 
 ```bash
 # Desde la raíz del proyecto
-streamlit run frontend/main.py
+cd frontend
+streamlit run main.py
 ```
 
 La aplicación se abrirá automáticamente en tu navegador en `http://localhost:8501`
+
+### Opción 2: Ejecutar backend + frontend (arquitectura completa)
+
+**Terminal 1 - Backend API (FastAPI):**
+```bash
+# Desde la raíz del proyecto
+python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+El backend estará disponible en:
+- API: `http://localhost:8000`
+- Documentación Swagger: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+**Terminal 2 - Frontend (Streamlit):**
+```bash
+# Desde la raíz del proyecto
+cd frontend
+streamlit run main.py
+```
+
+El frontend estará disponible en `http://localhost:8501`
+
+> **Nota:** Ambos servidores deben estar corriendo simultáneamente para que la autenticación funcione correctamente.
 
 ### Usuarios de Prueba
 

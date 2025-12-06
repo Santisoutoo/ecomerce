@@ -8,7 +8,7 @@ from datetime import datetime
 import uuid
 import bcrypt
 from firebase_admin import db
-from config.firebase_config import get_database
+from backend.config.firebase_config import get_database
 
 
 class UserService:
@@ -87,13 +87,13 @@ class UserService:
     @staticmethod
     def email_exists(email: str) -> bool:
         """
-        Verifica si un email ya está registrado.
+        Verifica si un email ya está registrado por un usuario activo.
 
         Args:
             email: Email a verificar
 
         Returns:
-            bool: True si existe, False si no
+            bool: True si existe y está activo, False si no
         """
         users_ref = UserService._get_users_ref()
         all_users = users_ref.get()
@@ -101,9 +101,9 @@ class UserService:
         if not all_users:
             return False
 
-        # Buscar email en todos los usuarios
+        # Buscar email solo en usuarios activos
         for user_data in all_users.values():
-            if user_data.get('email') == email:
+            if user_data.get('email') == email and user_data.get('activo', True):
                 return True
 
         return False
@@ -249,12 +249,13 @@ class UserService:
         }
 
     @staticmethod
-    def get_user_by_email(email: str) -> Optional[dict]:
+    def get_user_by_email(email: str, include_inactive: bool = False) -> Optional[dict]:
         """
         Obtiene un usuario por su email.
 
         Args:
             email: Email del usuario
+            include_inactive: Si True, incluye usuarios inactivos. Por defecto solo activos.
 
         Returns:
             Optional[dict]: Datos del usuario si existe, None si no
@@ -265,9 +266,13 @@ class UserService:
         if not all_users:
             return None
 
-        # Buscar usuario por email
+        # Buscar usuario por email (solo activos por defecto)
         for user_id, user_data in all_users.items():
             if user_data.get('email') == email:
+                # Si no incluimos inactivos, verificar que esté activo
+                if not include_inactive and not user_data.get('activo', True):
+                    continue
+
                 return {
                     "user_id": user_id,
                     "email": user_data.get('email'),

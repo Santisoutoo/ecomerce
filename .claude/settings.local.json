@@ -4,7 +4,10 @@
       "Bash(cd:*)",
       "Bash(find:*)",
       "Bash(python:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

@@ -7,8 +7,8 @@ from typing import Optional, List, Dict
 from datetime import datetime
 import uuid
 from firebase_admin import db
-from config.firebase_config import get_database
-from models.models import Cart, CartItem, CartItemCreate, CartItemUpdate, Personalization
+from backend.config.firebase_config import get_database
+from backend.models.models import Cart, CartItem, CartItemCreate, CartItemUpdate, Personalization
 
 
 class CartService:

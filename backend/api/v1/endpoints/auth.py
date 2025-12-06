@@ -4,18 +4,18 @@ Gestiona registro, login, logout y validación de usuarios con Firebase Realtime
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
-from models.auth import (
+from backend.models.auth import (
     SignUpRequest,
     SignInRequest,
     TokenResponse,
     UserResponse,
     MessageResponse
 )
-from core.security import create_access_token, get_current_user
-from config.firebase_config import get_database, get_storage_bucket
-from services.user_service import UserService
+from backend.core.security import create_access_token, get_current_user
+from backend.config.firebase_config import get_database, get_storage_bucket
+from backend.services.user_service import UserService
 from datetime import datetime, timedelta
-from config.settings import ACCESS_TOKEN_EXPIRE_MINUTES
+from backend.config.settings import ACCESS_TOKEN_EXPIRE_MINUTES
 import uuid
 import os
 

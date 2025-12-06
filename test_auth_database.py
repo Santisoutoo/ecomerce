@@ -21,16 +21,26 @@ test_password = "TestPassword123"
 test_nombre = "Usuario"
 test_apellidos = "De Prueba"
 
-# TEST 1: Limpiar usuario si existe
+# TEST 1: Limpiar usuario si existe (incluye inactivos)
 print("\n" + "=" * 70)
 print("TEST 1: Limpiar datos previos")
 print("=" * 70)
 
-existing_user = UserService.get_user_by_email(test_email)
-if existing_user:
-    print(f"🧹 Usuario existente encontrado: {existing_user['user_id']}")
-    UserService.delete_user(existing_user['user_id'])
-    print("✅ Usuario anterior desactivado")
+# Buscar usuarios tanto activos como inactivos
+users_ref = UserService._get_users_ref()
+all_users = users_ref.get()
+deleted_count = 0
+
+if all_users:
+    for user_id, user_data in all_users.items():
+        if user_data.get('email') == test_email:
+            print(f"🧹 Usuario encontrado: {user_id} (activo: {user_data.get('activo', True)})")
+            # Eliminar completamente (no soft delete)
+            users_ref.child(user_id).delete()
+            deleted_count += 1
+
+if deleted_count > 0:
+    print(f"✅ {deleted_count} usuario(s) eliminado(s)")
 else:
     print("✅ No hay datos previos a limpiar")
 
