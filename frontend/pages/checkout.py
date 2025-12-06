@@ -238,23 +238,23 @@ def render_checkout_item(item: dict):
     Args:
         item: Diccionario del item
     """
-    personalizacion = item.get('personalizacion')
-    cantidad = item.get('cantidad', 1)
-    precio_total = (item.get('precio_unitario', 0) + item.get('precio_personalizacion', 0)) * cantidad
+    personalizacion = item.get('personalization')
+    cantidad = item.get('quantity', 1)
+    precio_total = (item.get('unit_price', 0) + item.get('personalization_price', 0)) * cantidad
 
     # Usar columnas para layout
     col1, col2, col3 = st.columns([1, 4, 1.5])
 
     with col1:
-        st.image(item.get('imagen_url', 'https://via.placeholder.com/80'), width=80)
+        st.image(item.get('product_image', 'https://via.placeholder.com/80'), width=80)
 
     with col2:
         st.markdown(f"""
         <div>
-            <p style="color: #a78bfa; font-size: 0.75rem; margin: 0 0 0.25rem 0;">{item.get('equipo', '')}</p>
-            <p style="color: #ffffff; font-weight: 600; font-size: 0.95rem; margin: 0 0 0.25rem 0;">{item.get('name', '')}</p>
+            <p style="color: #a78bfa; font-size: 0.75rem; margin: 0 0 0.25rem 0;">{item.get('team', '')}</p>
+            <p style="color: #ffffff; font-weight: 600; font-size: 0.95rem; margin: 0 0 0.25rem 0;">{item.get('product_name', '')}</p>
             <p style="color: #9ca3af; font-size: 0.875rem; margin: 0;">
-                Talla: {item.get('talla', '-')} | Cantidad: {cantidad}
+                Talla: {item.get('size', '-')} | Cantidad: {cantidad}
             </p>
             {f"<p style='color: #a78bfa; font-size: 0.75rem; margin: 0.25rem 0 0 0;'>✨ {personalizacion.get('nombre', '')} #{personalizacion.get('numero', '')}</p>" if personalizacion else ""}
         </div>
@@ -577,8 +577,8 @@ def render_order_confirmation_modal(order: dict):
     # Construir lista de productos
     products_html = ""
     for item in items[:3]:
-        name = item.get('name', 'Producto')
-        cantidad = item.get('cantidad', 1)
+        name = item.get('product_name', 'Producto')
+        cantidad = item.get('quantity', 1)
         products_html += f"<li>{cantidad}x {name}</li>"
 
     if len(items) > 3:
