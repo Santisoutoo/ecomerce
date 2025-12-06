@@ -7,6 +7,7 @@ import streamlit as st
 from components.cart_item import render_cart_item
 from components.navbar import show_success_toast, show_error_toast
 from config import SESSION_KEYS
+from services.cart_service import CartService
 
 
 # Constantes (deberían venir de config)
@@ -21,8 +22,8 @@ def render_cart_page():
     """
     st.markdown("# 🛒 Carrito de Compras")
 
-    # Obtener carrito
-    cart = st.session_state.get('cart', [])
+    # Obtener carrito usando el servicio
+    cart = CartService.get_cart()
 
     if not cart:
         render_empty_cart()
@@ -262,9 +263,9 @@ def calculate_subtotal(cart: list) -> float:
     """
     subtotal = 0
     for item in cart:
-        precio_unitario = item.get('precio_unitario', 0)
-        precio_personalizacion = item.get('precio_personalizacion', 0)
-        cantidad = item.get('cantidad', 1)
+        precio_unitario = item.get('unit_price', 0)
+        precio_personalizacion = item.get('personalization_price', 0)
+        cantidad = item.get('quantity', 1)
         subtotal += (precio_unitario + precio_personalizacion) * cantidad
 
     return subtotal
@@ -274,8 +275,8 @@ def clear_cart():
     """
     Vacía completamente el carrito.
     """
-    if 'cart' in st.session_state:
-        st.session_state['cart'] = []
+    # Usar CartService para vaciar
+    CartService.clear_cart()
 
     # Limpiar también puntos aplicados
     if 'applied_points_discount' in st.session_state:
@@ -291,8 +292,8 @@ def proceed_to_checkout():
     """
     Procede al proceso de checkout.
     """
-    # Validar que el carrito no esté vacío
-    cart = st.session_state.get('cart', [])
+    # Validar que el carrito no esté vacío usando CartService
+    cart = CartService.get_cart()
     if not cart:
         show_error_toast("❌ El carrito está vacío")
         return

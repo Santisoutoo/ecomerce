@@ -4,6 +4,7 @@ Muestra cada producto en el carrito con opciones de editar/eliminar.
 """
 
 import streamlit as st
+from services.cart_service import CartService
 
 
 def render_cart_item(item: dict, index: int):
@@ -45,9 +46,9 @@ def render_cart_item(item: dict, index: int):
                 padding: 0.5rem;
                 text-align: center;
             ">
-                <img src="{item.get('imagen_url', 'https://via.placeholder.com/150')}"
+                <img src="{item.get('product_image', 'https://via.placeholder.com/150')}"
                      style="width: 100%; border-radius: 4px;"
-                     alt="{item.get('name', 'Producto')}">
+                     alt="{item.get('product_name', 'Producto')}">
             </div>
             """, unsafe_allow_html=True)
 
@@ -56,19 +57,19 @@ def render_cart_item(item: dict, index: int):
             st.markdown(f"""
             <div style="padding: 0.5rem 0;">
                 <p style="color: #a78bfa; font-size: 0.875rem; margin: 0 0 0.25rem 0;">
-                    {item.get('equipo', 'Equipo')}
+                    {item.get('team', 'Equipo')}
                 </p>
                 <h4 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1rem;">
-                    {item.get('name', 'Producto')}
+                    {item.get('product_name', 'Producto')}
                 </h4>
                 <p style="color: #9ca3af; font-size: 0.875rem; margin: 0;">
-                    Talla: <strong>{item.get('talla', '-')}</strong>
+                    Talla: <strong>{item.get('size', '-')}</strong>
                 </p>
             </div>
             """, unsafe_allow_html=True)
 
             # Personalización (si aplica)
-            personalizacion = item.get('personalizacion')
+            personalizacion = item.get('personalization')
             if personalizacion:
                 nombre = personalizacion.get('nombre', '')
                 numero = personalizacion.get('numero', '')
@@ -93,7 +94,7 @@ def render_cart_item(item: dict, index: int):
         with col3:
             st.markdown("<p style='color: #9ca3af; font-size: 0.875rem; margin: 0 0 0.5rem 0;'>Cantidad</p>", unsafe_allow_html=True)
             if st.button("➖", key=f"minus_{index}", use_container_width=True):
-                update_quantity(index, item.get('cantidad', 1) - 1)
+                update_quantity(index, item.get('quantity', 1) - 1)
 
         # Cantidad actual
         with col4:
@@ -109,7 +110,7 @@ def render_cart_item(item: dict, index: int):
                 font-weight: 600;
                 font-size: 1.1rem;
             ">
-                {item.get('cantidad', 1)}
+                {item.get('quantity', 1)}
             </div>
             """, unsafe_allow_html=True)
 
@@ -117,13 +118,13 @@ def render_cart_item(item: dict, index: int):
         with col5:
             st.markdown("<p style='color: transparent; font-size: 0.875rem; margin: 0 0 0.5rem 0;'>.</p>", unsafe_allow_html=True)
             if st.button("➕", key=f"plus_{index}", use_container_width=True):
-                update_quantity(index, item.get('cantidad', 1) + 1)
+                update_quantity(index, item.get('quantity', 1) + 1)
 
         with col6:
             # Precios
-            precio_unitario = item.get('precio_unitario', 0)
-            precio_personalizacion = item.get('precio_personalizacion', 0)
-            cantidad = item.get('cantidad', 1)
+            precio_unitario = item.get('unit_price', 0)
+            precio_personalizacion = item.get('personalization_price', 0)
+            cantidad = item.get('quantity', 1)
             subtotal = (precio_unitario + precio_personalizacion) * cantidad
 
             st.markdown("<p style='color: #9ca3af; font-size: 0.875rem; margin: 0 0 0.5rem 0;'>Precio</p>", unsafe_allow_html=True)
@@ -182,9 +183,6 @@ def update_quantity(index: int, new_quantity: int):
         index: Índice del item en el carrito
         new_quantity: Nueva cantidad
     """
-    if 'cart' not in st.session_state or index >= len(st.session_state['cart']):
-        return
-
     # Validar cantidad mínima y máxima
     if new_quantity < 1:
         # Si es 0, eliminar el item
@@ -195,16 +193,12 @@ def update_quantity(index: int, new_quantity: int):
         st.warning("⚠️ Cantidad máxima: 10 unidades por producto")
         new_quantity = 10
 
-    # Actualizar cantidad
-    st.session_state['cart'][index]['cantidad'] = new_quantity
-
-    # Recalcular subtotal
-    item = st.session_state['cart'][index]
-    precio_unitario = item.get('precio_unitario', 0)
-    precio_personalizacion = item.get('precio_personalizacion', 0)
-    item['precio_total'] = (precio_unitario + precio_personalizacion) * new_quantity
-
-    st.rerun()
+    # Actualizar usando CartService
+    try:
+        CartService.update_item(index, quantity=new_quantity)
+        st.rerun()
+    except Exception as e:
+        st.error(f"Error al actualizar cantidad: {str(e)}")
 
 
 def remove_item(index: int):
@@ -214,12 +208,17 @@ def remove_item(index: int):
     Args:
         index: Índice del item a eliminar
     """
-    if 'cart' not in st.session_state or index >= len(st.session_state['cart']):
+    # Obtener nombre del producto antes de eliminar
+    cart = CartService.get_cart()
+    if index >= len(cart):
         return
 
-    # Eliminar item
-    item_name = st.session_state['cart'][index].get('name', 'Producto')
-    del st.session_state['cart'][index]
+    item_name = cart[index].get('product_name', 'Producto')
 
-    st.success(f"✅ {item_name} eliminado del carrito")
-    st.rerun()
+    # Eliminar usando CartService
+    try:
+        CartService.remove_item(index)
+        st.success(f"✅ {item_name} eliminado del carrito")
+        st.rerun()
+    except Exception as e:
+        st.error(f"Error al eliminar producto: {str(e)}")
