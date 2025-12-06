@@ -196,7 +196,7 @@ def update_quantity(index: int, new_quantity: int):
     # Actualizar usando CartService
     try:
         CartService.update_item(index, quantity=new_quantity)
-        st.rerun()
+        # NO llamar st.rerun() - Streamlit recarga automáticamente
     except Exception as e:
         st.error(f"Error al actualizar cantidad: {str(e)}")
 
@@ -219,6 +219,6 @@ def remove_item(index: int):
     try:
         CartService.remove_item(index)
         st.success(f"✅ {item_name} eliminado del carrito")
-        st.rerun()
+        # NO llamar st.rerun() - Streamlit recarga automáticamente
     except Exception as e:
         st.error(f"Error al eliminar producto: {str(e)}")

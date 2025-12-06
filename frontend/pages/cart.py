@@ -285,7 +285,7 @@ def clear_cart():
         del st.session_state['points_to_use']
 
     show_success_toast("✅ Carrito vaciado")
-    st.rerun()
+    # NO llamar st.rerun() - Streamlit recarga automáticamente
 
 
 def proceed_to_checkout():
@@ -316,5 +316,5 @@ def proceed_to_checkout():
 
     # Navegar a checkout
     st.session_state[SESSION_KEYS["current_page"]] = "checkout"
-    show_success_toast("✅ Procediendo al pago...")
-    st.rerun()
+    # NO mostrar toast aquí porque causa un rerun extra
+    # NO llamar st.rerun() - Streamlit recarga automáticamente cuando cambia session_state

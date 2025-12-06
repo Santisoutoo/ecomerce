@@ -235,20 +235,15 @@ def render_size_selector(product: dict):
     if 'selected_size' not in st.session_state:
         st.session_state['selected_size'] = tallas[0]
 
-    # Selector de talla con botones
-    cols = st.columns(len(tallas))
-
-    for i, talla in enumerate(tallas):
-        with cols[i]:
-            is_selected = st.session_state.get('selected_size') == talla
-
-            if st.button(
-                talla,
-                key=f"size_{talla}",
-                use_container_width=True,
-                type="primary" if is_selected else "secondary"
-            ):
-                st.session_state['selected_size'] = talla
+    # Usar radio buttons en lugar de botones para evitar reruns innecesarios
+    st.session_state['selected_size'] = st.radio(
+        "Talla:",
+        options=tallas,
+        index=tallas.index(st.session_state.get('selected_size', tallas[0])) if st.session_state.get('selected_size') in tallas else 0,
+        horizontal=True,
+        key="size_radio_selector",
+        label_visibility="collapsed"
+    )
 
 
 def render_customization_form(product: dict) -> float:
@@ -422,9 +417,11 @@ def add_to_cart(product: dict):
             personalization=personalizacion
         )
 
-        # Mostrar mensaje de éxito con animación elegante
+        # Mostrar mensaje de éxito
         show_success_toast(f"✅ {product.get('name')} agregado al carrito")
-        show_elegant_add_animation()
+
+        # NO llamar st.rerun() aquí - Streamlit ya recarga automáticamente
+        # y el CartService ya actualiza el estado
 
     except Exception as e:
         show_error_toast(f"Error al agregar al carrito: {str(e)}")
