@@ -574,168 +574,80 @@ def render_order_confirmation_modal(order: dict):
     total = order.get('total', 0)
     points_earned = order.get('points_earned', 0)
 
-    # Construir lista de productos
-    products_html = ""
-    for item in items[:3]:
-        name = item.get('product_name', 'Producto')
-        cantidad = item.get('quantity', 1)
-        products_html += f"<li>{cantidad}x {name}</li>"
+    # Modal simplificado usando contenedores de Streamlit
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
-    if len(items) > 3:
-        products_html += f"<li style='color: #9ca3af; font-style: italic;'>... y {len(items) - 3} producto(s) más</li>"
+    # Contenedor centrado
+    col1, col2, col3 = st.columns([1, 3, 1])
 
-    # CSS
-    st.markdown("""
-        <style>
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideInUp {
-            from {
-                transform: translate(-50%, -40%);
-                opacity: 0;
-            }
-            to {
-                transform: translate(-50%, -50%);
-                opacity: 1;
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .order-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 100000;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .order-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+    with col2:
+        st.markdown("""
+        <div style="
             background: linear-gradient(135deg, #1e1b4b 0%, #181633 100%);
-            border: 2px solid #a78bfa;
+            border: 3px solid #a78bfa;
             border-radius: 16px;
-            padding: 1.5rem;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(167, 139, 250, 0.4);
-            z-index: 100001;
-            animation: slideInUp 0.5s ease-out;
-        }
-
-        .order-modal-icon {
-            font-size: 3rem;
+            padding: 2.5rem;
             text-align: center;
-            margin-bottom: 0.5rem;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
+            box-shadow: 0 20px 60px rgba(167, 139, 250, 0.5);
+        ">
+            <div style="font-size: 5rem; margin-bottom: 1rem;">✅</div>
+            <h1 style="color: #ffffff; font-size: 2rem; margin: 0 0 0.5rem 0;">¡Pedido Procesado!</h1>
+            <p style="color: #a78bfa; font-size: 1.2rem; font-weight: 600; margin: 0 0 2rem 0;">#""" + order_number + """</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-        .order-modal-title {
-            color: #ffffff;
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-align: center;
-            margin: 0 0 0.25rem 0;
-        }
+        st.markdown("<br>", unsafe_allow_html=True)
 
-        .order-modal-order-number {
-            color: #a78bfa;
-            font-size: 1rem;
-            font-weight: 600;
-            text-align: center;
-            margin: 0 0 1rem 0;
-        }
-
-        .order-modal-section {
-            background: rgba(45, 45, 58, 0.3);
+        # Sección de productos
+        st.markdown("""
+        <div style="
+            background: rgba(45, 45, 58, 0.5);
+            border: 1px solid rgba(167, 139, 250, 0.2);
             border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
+            padding: 1.5rem;
+        ">
+            <h3 style="color: #a78bfa; margin: 0 0 1rem 0; font-size: 1.1rem;">📦 Resumen del Pedido</h3>
+        """, unsafe_allow_html=True)
 
-        .order-modal-section-title {
-            color: #a78bfa;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin: 0 0 0.75rem 0;
-        }
+        # Listar productos
+        for i, item in enumerate(items[:3]):
+            name = item.get('product_name', 'Producto')
+            cantidad = item.get('quantity', 1)
+            st.markdown(f"""
+            <p style="color: #d1d5db; margin: 0.5rem 0; font-size: 1rem;">
+                • {cantidad}x {name}
+            </p>
+            """, unsafe_allow_html=True)
 
-        .order-modal-products {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 0.75rem 0;
-        }
+        if len(items) > 3:
+            st.markdown(f"""
+            <p style="color: #9ca3af; margin: 0.5rem 0; font-size: 0.9rem; font-style: italic;">
+                ... y {len(items) - 3} producto(s) más
+            </p>
+            """, unsafe_allow_html=True)
 
-        .order-modal-products li {
-            color: #d1d5db;
-            margin-bottom: 0.25rem;
-            font-size: 0.875rem;
-        }
-
-        .order-modal-total {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 0.75rem;
-            border-top: 2px solid #2d2d3a;
-        }
-
-        .order-modal-total-label {
-            color: #ffffff;
-            font-size: 1rem;
-            font-weight: 700;
-        }
-
-        .order-modal-total-value {
-            color: #a78bfa;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .order-modal-points {
-            color: #10b981;
-            text-align: center;
-            font-size: 0.875rem;
-            margin: 0.75rem 0;
-            font-weight: 600;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # Modal HTML completo
-    modal_html = f"""
-        <div class="order-modal-overlay">
-            <div class="order-modal">
-                <div class="order-modal-icon">✅</div>
-                <h2 class="order-modal-title">¡Pedido Procesado!</h2>
-                <p class="order-modal-order-number">#{order_number}</p>
-
-                <div class="order-modal-section">
-                    <h3 class="order-modal-section-title">📦 Resumen del Pedido</h3>
-                    <ul class="order-modal-products">
-                        {products_html}
-                    </ul>
-                    <div class="order-modal-total">
-                        <span class="order-modal-total-label">TOTAL:</span>
-                        <span class="order-modal-total-value">{total:.2f}€</span>
-                    </div>
-                </div>
-
-                <p class="order-modal-points">✨ Has ganado {points_earned} puntos</p>
+        # Total
+        st.markdown(f"""
+            <hr style="border: 0; border-top: 2px solid rgba(167, 139, 250, 0.3); margin: 1.5rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #ffffff; font-size: 1.2rem; font-weight: 700;">TOTAL:</span>
+                <span style="color: #a78bfa; font-size: 2rem; font-weight: 700;">{total:.2f}€</span>
             </div>
         </div>
-    """
+        """, unsafe_allow_html=True)
 
-    st.markdown(modal_html, unsafe_allow_html=True)
+        # Puntos ganados
+        st.markdown(f"""
+        <div style="
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1rem;
+        ">
+            <p style="color: #10b981; font-size: 1.3rem; font-weight: 600; margin: 0;">
+                ✨ Has ganado {points_earned} puntos
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
