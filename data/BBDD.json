@@ -1,7 +1,7 @@
 {
   "products": [
     {
-      "id": "prod_001",
+      "id": 1,
       "name": "Camiseta FC Barcelona",
       "description": "Camiseta oficial del FC Barcelona temporada 2024. Primera equipación con diseño clásico azulgrana.",
       "price": 89.99,
@@ -15,7 +15,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772154/camiseta_barcelona_lgranp.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 12,
         "M": 18,
@@ -27,7 +33,7 @@
       "active": true
     },
     {
-      "id": "prod_002",
+      "id": 2,
       "name": "Camiseta Atlético de Madrid",
       "description": "Camiseta oficial del Atlético de Madrid temporada 2024. Primera equipación rojibleanca.",
       "price": 84.99,
@@ -41,7 +47,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772154/camiseta_atletico_jce6ol.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 8,
         "M": 14,
@@ -53,7 +65,7 @@
       "active": true
     },
     {
-      "id": "prod_003",
+      "id": 3,
       "name": "Camiseta Valencia CF",
       "description": "Camiseta oficial del Valencia CF temporada 2024. Primera equipación blanca con detalles naranjas.",
       "price": 79.99,
@@ -67,7 +79,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772162/camiseta_valencia_kvxncw.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 6,
         "M": 10,
@@ -79,7 +97,7 @@
       "active": true
     },
     {
-      "id": "prod_004",
+      "id": 4,
       "name": "Camiseta Red Bull Racing F1 2024",
       "description": "Camiseta oficial del equipo Red Bull Racing de Fórmula 1. Diseño aerodinámico con los colores del equipo.",
       "price": 79.99,
@@ -93,7 +111,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772198/camiset_red_bull_fyednk.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 8,
         "M": 12,
@@ -105,7 +129,7 @@
       "active": true
     },
     {
-      "id": "prod_005",
+      "id": 5,
       "name": "Camiseta Ferrari F1 2024",
       "description": "Camiseta oficial de la Scuderia Ferrari de Fórmula 1. Rojo Ferrari clásico con patrocinadores oficiales.",
       "price": 79.99,
@@ -119,7 +143,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772198/camiseta_ferrari_ppqufk.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 10,
         "M": 14,
@@ -131,7 +161,7 @@
       "active": true
     },
     {
-      "id": "prod_006",
+      "id": 6,
       "name": "Camiseta McLaren F1 2024",
       "description": "Camiseta oficial del equipo McLaren de Fórmula 1. Naranja papaya característico con detalles azules.",
       "price": 79.99,
@@ -145,7 +175,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772198/camiseta_mclaren_fglsmt.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 7,
         "M": 11,
@@ -157,7 +193,7 @@
       "active": true
     },
     {
-      "id": "prod_007",
+      "id": 7,
       "name": "Camiseta Aston Martin F1 2024",
       "description": "Camiseta oficial del equipo Aston Martin de Fórmula 1. Verde británico racing con detalles rosas.",
       "price": 74.99,
@@ -171,7 +207,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772199/camiseta_aston_fbkp84.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 6,
         "M": 10,
@@ -183,7 +225,7 @@
       "active": true
     },
     {
-      "id": "prod_008",
+      "id": 8,
       "name": "Camiseta Williams Racing F1 2024",
       "description": "Camiseta oficial del equipo Williams Racing de Fórmula 1. Azul y blanco clásico.",
       "price": 69.99,
@@ -197,7 +239,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772198/camiseta_wiliams_q9tbia.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 4,
         "M": 8,
@@ -209,7 +257,7 @@
       "active": true
     },
     {
-      "id": "prod_009",
+      "id": 9,
       "name": "Camiseta Real Madrid Baloncesto ACB",
       "description": "Camiseta oficial del equipo de baloncesto del Real Madrid. Liga ACB temporada 2024.",
       "price": 74.99,
@@ -220,10 +268,16 @@
       "images": {
         "main": "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_madrid_hbw7hk.jpg",
         "gallery": [
-            "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_madrid_hbw7hk.jpg"
+          "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_madrid_hbw7hk.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 6,
         "M": 10,
@@ -235,7 +289,7 @@
       "active": true
     },
     {
-      "id": "prod_010",
+      "id": 10,
       "name": "Camiseta Baskonia ACB",
       "description": "Camiseta oficial del Saski Baskonia. Liga ACB temporada 2024.",
       "price": 69.99,
@@ -246,10 +300,16 @@
       "images": {
         "main": "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_baskonia_bj783c.jpg",
         "gallery": [
-            "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_baskonia_bj783c.jpg"
+          "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_baskonia_bj783c.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 5,
         "M": 9,
@@ -261,7 +321,7 @@
       "active": true
     },
     {
-      "id": "prod_011",
+      "id": 11,
       "name": "Camiseta Valencia Basket ACB",
       "description": "Camiseta oficial del Valencia Basket Club. Liga ACB temporada 2024.",
       "price": 69.99,
@@ -272,10 +332,16 @@
       "images": {
         "main": "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_valencia_gt9s2p.jpg",
         "gallery": [
-            "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_valencia_gt9s2p.jpg"
+          "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_valencia_gt9s2p.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 6,
         "M": 10,
@@ -287,7 +353,7 @@
       "active": true
     },
     {
-      "id": "prod_012",
+      "id": 12,
       "name": "Camiseta Joventut Badalona ACB",
       "description": "Camiseta oficial del Joventut Badalona. Liga ACB temporada 2024.",
       "price": 64.99,
@@ -301,7 +367,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_joventus_ju96i7.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 4,
         "M": 8,
@@ -313,7 +385,7 @@
       "active": true
     },
     {
-      "id": "prod_013",
+      "id": 13,
       "name": "Camiseta Bitci Baskonia ACB",
       "description": "Camiseta alternativa del Saski Baskonia. Liga ACB temporada 2024.",
       "price": 69.99,
@@ -327,7 +399,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiseta_baskonia_bj783c.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 5,
         "M": 8,
@@ -339,7 +417,7 @@
       "active": true
     },
     {
-      "id": "prod_014",
+      "id": 14,
       "name": "Camiseta Betis Baloncesto ACB",
       "description": "Camiseta oficial del Real Betis Baloncesto. Liga ACB temporada 2024.",
       "price": 64.99,
@@ -353,7 +431,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772115/camiseta_betis_lmdypm.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 4,
         "M": 7,
@@ -365,7 +449,7 @@
       "active": true
     },
     {
-      "id": "prod_015",
+      "id": 15,
       "name": "Camiseta Gran Canaria ACB",
       "description": "Camiseta oficial del Granca Baloncesto. Liga ACB temporada 2024.",
       "price": 69.99,
@@ -379,7 +463,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772268/camiset_gran_canaria_tdqp9n.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 5,
         "M": 9,
@@ -391,7 +481,7 @@
       "active": true
     },
     {
-      "id": "prod_016",
+      "id": 16,
       "name": "Camiseta Celta de Vigo",
       "description": "Camiseta oficial del RC Celta de Vigo temporada 2024. Primera equipación celeste.",
       "price": 79.99,
@@ -405,7 +495,13 @@
           "https://res.cloudinary.com/dlrrvenn1/image/upload/v1764772115/camiseta_celta_hhwvbn.jpg"
         ]
       },
-      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
       "stock": {
         "S": 6,
         "M": 10,

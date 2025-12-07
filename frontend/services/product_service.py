@@ -208,12 +208,12 @@ class ProductService:
         return mapped_products[:limit]
 
     @staticmethod
-    def get_product_by_id(product_id: str) -> Optional[Dict]:
+    def get_product_by_id(product_id) -> Optional[Dict]:
         """
         Obtiene un producto por su ID.
 
         Args:
-            product_id: ID del producto
+            product_id: ID del producto (int o str)
 
         Returns:
             Optional[Dict]: Producto o None si no se encuentra
@@ -221,8 +221,21 @@ class ProductService:
         data = ProductService._load_data()
         products = data.get('products', [])
 
+        # Convertir a int si es necesario para comparación
+        try:
+            search_id = int(product_id) if isinstance(product_id, str) else product_id
+        except (ValueError, TypeError):
+            search_id = product_id
+
         for product in products:
-            if product.get("id") == product_id and product.get('active', True):
+            prod_id = product.get("id")
+            # Convertir ID del producto a int si es necesario
+            try:
+                prod_id = int(prod_id) if isinstance(prod_id, str) else prod_id
+            except (ValueError, TypeError):
+                pass
+
+            if prod_id == search_id and product.get('active', True):
                 return ProductService._map_product(product)
 
         return None

@@ -51,7 +51,9 @@ def upload_json_to_firebase(json_file_path: str):
                 collection_dict = {}
                 for item in data[collection]:
                     if 'id' in item:
-                        collection_dict[item['id']] = item
+                        # Convertir ID a string para Firebase (las claves deben ser strings)
+                        item_id = str(item['id'])
+                        collection_dict[item_id] = item
                     else:
                         # Si no hay ID, usar el índice
                         collection_dict[f"item_{len(collection_dict)}"] = item

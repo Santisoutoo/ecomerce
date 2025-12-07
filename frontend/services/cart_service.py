@@ -141,7 +141,7 @@ class CartService:
         Añade un producto al carrito y sincroniza con Firebase.
 
         Args:
-            product_id: ID del producto
+            product_id: ID del producto (str o int)
             quantity: Cantidad a añadir
             size: Talla seleccionada
             personalization: Datos de personalización (nombre, numero)
@@ -150,6 +150,13 @@ class CartService:
             Dict: Item añadido al carrito
         """
         CartService.initialize_cart()
+
+        # Convertir product_id a int si es necesario
+        if isinstance(product_id, str):
+            try:
+                product_id = int(product_id)
+            except ValueError:
+                raise ValueError(f"ID de producto inválido: {product_id}")
 
         # Obtener datos del producto
         product = ProductService.get_product_by_id(product_id)
@@ -194,6 +201,13 @@ class CartService:
                         numero=personalization.get('numero')
                     )
 
+                # Obtener producto desde Firebase (estructura correcta)
+                from backend.services.cart_service import CartService as CS
+                product_data = CS._get_product_data(product_id)
+
+                if not product_data:
+                    raise ValueError(f"Producto {product_id} no encontrado en Firebase")
+
                 # Añadir a Firebase
                 item_create = CartItemCreate(
                     product_id=product_id,
@@ -202,7 +216,7 @@ class CartService:
                     personalization=pers_obj
                 )
 
-                firebase_item = BackendCartService.add_item(user_id, item_create, product, user_email)
+                firebase_item = BackendCartService.add_item(user_id, item_create, product_data, user_email)
 
                 # Actualizar el item local con el ID de Firebase
                 cart_item['id'] = firebase_item.id
@@ -323,7 +337,7 @@ class CartService:
         st.session_state[CartService.CART_TOTAL_KEY] = round(total_price, 2)
 
     @staticmethod
-    def find_similar_item(product_id: str, size: str, personalization: Optional[Dict]) -> Optional[int]:
+    def find_similar_item(product_id, size: str, personalization: Optional[Dict]) -> Optional[int]:
         """
         Busca si existe un item similar en el carrito.
 
@@ -348,7 +362,7 @@ class CartService:
 
     @staticmethod
     def add_or_update_item(
-        product_id: str,
+        product_id,
         quantity: int = 1,
         size: str = "M",
         personalization: Optional[Dict] = None

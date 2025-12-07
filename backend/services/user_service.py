@@ -31,22 +31,24 @@ class UserService:
     """
 
     @staticmethod
-    def _generate_user_id() -> str:
+    def _generate_user_id() -> int:
         """
         Genera un ID secuencial para el usuario (1, 2, 3, 4...).
 
         Returns:
-            str: ID secuencial del usuario
+            int: ID secuencial del usuario
         """
         users_ref = UserService._get_users_ref()
         all_users = users_ref.get()
 
         if not all_users:
-            return "1"
+            return 1
 
-        # Si es una lista, el siguiente ID es el largo de la lista + 1
+        # Si es una lista, el siguiente ID es el largo de la lista
         if isinstance(all_users, list):
-            return str(len(all_users) + 1)
+            # Contar elementos no-None
+            count = sum(1 for item in all_users if item is not None)
+            return count + 1
 
         # Si es un diccionario, obtener todos los IDs numéricos y encontrar el máximo
         numeric_ids = []
@@ -58,10 +60,10 @@ class UserService:
                 continue
 
         if not numeric_ids:
-            return "1"
+            return 1
 
         # Retornar el siguiente ID
-        return str(max(numeric_ids) + 1)
+        return max(numeric_ids) + 1
 
     @staticmethod
     def _verify_password(password: str, stored_password: str) -> bool:
@@ -110,6 +112,9 @@ class UserService:
 
         # Buscar email solo en usuarios activos
         for user_data in users_values:
+            # Saltar elementos None (pueden aparecer cuando Firebase convierte claves numéricas a lista)
+            if user_data is None:
+                continue
             if user_data.get('email') == email and user_data.get('activo', True):
                 return True
 
@@ -164,9 +169,9 @@ class UserService:
             "direccion_envio": {}
         }
 
-        # Guardar en Firebase
+        # Guardar en Firebase (convertir ID a string para Firebase)
         users_ref = UserService._get_users_ref()
-        users_ref.child(user_id).set(user_data)
+        users_ref.child(str(user_id)).set(user_data)
 
         # Retornar datos sin el password
         return {
@@ -198,8 +203,14 @@ class UserService:
         if not all_users:
             return None
 
+        # Manejar tanto dict como list
+        users_to_check = all_users.items() if isinstance(all_users, dict) else enumerate(all_users)
+
         # Buscar usuario por email
-        for user_id, user_data in all_users.items():
+        for user_id, user_data in users_to_check:
+            # Saltar elementos None (pueden aparecer cuando Firebase convierte claves numéricas a lista)
+            if user_data is None:
+                continue
             if user_data.get('email') == email:
                 # Verificar que el usuario esté activo
                 if not user_data.get('activo', True):
@@ -208,9 +219,12 @@ class UserService:
                 # Verificar contraseña
                 stored_password = user_data.get('password')
                 if stored_password and UserService._verify_password(password, stored_password):
+                    # Convertir user_id a int si es necesario
+                    user_id_int = int(user_id) if isinstance(user_id, str) else user_id
+
                     # Retornar datos del usuario (sin password)
                     return {
-                        "user_id": user_id,
+                        "user_id": user_id_int,
                         "email": user_data.get('email'),
                         "nombre": user_data.get('nombre'),
                         "apellidos": user_data.get('apellidos'),
@@ -223,25 +237,28 @@ class UserService:
         return None
 
     @staticmethod
-    def get_user_by_id(user_id: str) -> Optional[dict]:
+    def get_user_by_id(user_id) -> Optional[dict]:
         """
         Obtiene un usuario por su ID.
 
         Args:
-            user_id: ID del usuario
+            user_id: ID del usuario (int o str)
 
         Returns:
-            Optional[dict]: Datos del usuario (sin password_hash) si existe, None si no
+            Optional[dict]: Datos del usuario (sin password) si existe, None si no
         """
         users_ref = UserService._get_users_ref()
-        user_data = users_ref.child(user_id).get()
+        user_data = users_ref.child(str(user_id)).get()
 
         if not user_data:
             return None
 
-        # Retornar datos sin password_hash
+        # Convertir a int si es necesario
+        user_id_int = int(user_id) if isinstance(user_id, str) else user_id
+
+        # Retornar datos sin password
         return {
-            "user_id": user_id,
+            "user_id": user_id_int,
             "email": user_data.get('email'),
             "nombre": user_data.get('nombre'),
             "apellidos": user_data.get('apellidos'),
@@ -275,13 +292,16 @@ class UserService:
 
         # Buscar usuario por email (solo activos por defecto)
         for user_id, user_data in users_to_check:
+            # Saltar elementos None (pueden aparecer cuando Firebase convierte claves numéricas a lista)
+            if user_data is None:
+                continue
             if user_data.get('email') == email:
                 # Si no incluimos inactivos, verificar que esté activo
                 if not include_inactive and not user_data.get('activo', True):
                     continue
 
                 return {
-                    "user_id": str(user_id),
+                    "user_id": int(user_id) if isinstance(user_id, str) else user_id,
                     "email": user_data.get('email'),
                     "nombre": user_data.get('nombre'),
                     "apellidos": user_data.get('apellidos'),
@@ -295,7 +315,7 @@ class UserService:
         return None
 
     @staticmethod
-    def update_user(user_id: str, **kwargs) -> bool:
+    def update_user(user_id, **kwargs) -> bool:
         """
         Actualiza los datos de un usuario.
 
@@ -307,7 +327,7 @@ class UserService:
             bool: True si se actualizó, False si el usuario no existe
         """
         users_ref = UserService._get_users_ref()
-        user_ref = users_ref.child(user_id)
+        user_ref = users_ref.child(str(user_id))
 
         if not user_ref.get():
             return False
@@ -325,7 +345,7 @@ class UserService:
         return False
 
     @staticmethod
-    def change_password(user_id: str, old_password: str, new_password: str) -> bool:
+    def change_password(user_id, old_password: str, new_password: str) -> bool:
         """
         Cambia la contraseña de un usuario.
 
@@ -338,7 +358,7 @@ class UserService:
             bool: True si se cambió correctamente, False si no
         """
         users_ref = UserService._get_users_ref()
-        user_data = users_ref.child(user_id).get()
+        user_data = users_ref.child(str(user_id)).get()
 
         if not user_data:
             return False
@@ -349,14 +369,14 @@ class UserService:
             return False
 
         # Actualizar en Firebase con nueva contraseña
-        users_ref.child(user_id).update({
+        users_ref.child(str(user_id)).update({
             'password': new_password
         })
 
         return True
 
     @staticmethod
-    def delete_user(user_id: str) -> bool:
+    def delete_user(user_id) -> bool:
         """
         Desactiva un usuario (soft delete).
 
@@ -367,7 +387,7 @@ class UserService:
             bool: True si se desactivó, False si no existe
         """
         users_ref = UserService._get_users_ref()
-        user_ref = users_ref.child(user_id)
+        user_ref = users_ref.child(str(user_id))
 
         if not user_ref.get():
             return False

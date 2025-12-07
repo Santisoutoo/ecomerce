@@ -84,7 +84,8 @@ def sync_products_to_firebase(json_path: str, confirm: bool = True):
     for product in products:
         product_id = product.get('id')
         if product_id:
-            products_dict[product_id] = product
+            # Convertir ID a string para Firebase (las claves deben ser strings)
+            products_dict[str(product_id)] = product
         else:
             print(f"⚠️  Producto sin ID encontrado: {product.get('name', 'Sin nombre')}")
 

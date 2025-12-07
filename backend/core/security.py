@@ -87,7 +87,7 @@ async def get_current_user(
     # Decodificar JWT
     payload = decode_access_token(token)
 
-    user_id: str = payload.get("sub")
+    user_id = payload.get("sub")  # Puede ser int o str
     email: str = payload.get("email")
 
     if user_id is None or email is None:

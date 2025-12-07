@@ -60,7 +60,7 @@ class TokenResponse(BaseModel):
     """
     access_token: str = Field(..., description="Token JWT de acceso")
     token_type: str = Field(default="bearer", description="Tipo de token")
-    user_id: str = Field(..., description="ID del usuario")
+    user_id: int = Field(..., description="ID del usuario")
     email: str = Field(..., description="Email del usuario")
 
     class Config:
@@ -68,7 +68,7 @@ class TokenResponse(BaseModel):
             "example": {
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 "token_type": "bearer",
-                "user_id": "abc123def456",
+                "user_id": 1,
                 "email": "usuario@example.com"
             }
         }
@@ -78,7 +78,7 @@ class UserResponse(BaseModel):
     """
     Modelo para respuesta con información del usuario.
     """
-    uid: str = Field(..., description="ID único del usuario")
+    uid: int = Field(..., description="ID único del usuario")
     email: str = Field(..., description="Email del usuario")
     nombre: Optional[str] = Field(None, description="Nombre del usuario")
     apellidos: Optional[str] = Field(None, description="Apellidos del usuario")
@@ -90,7 +90,7 @@ class UserResponse(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "uid": "abc123def456",
+                "uid": 1,
                 "email": "usuario@example.com",
                 "nombre": "Juan",
                 "apellidos": "Pérez García",

@@ -32,11 +32,16 @@ all_users = users_ref.get()
 deleted_count = 0
 
 if all_users:
-    for user_id, user_data in all_users.items():
+    # Manejar tanto dict como list
+    users_to_check = all_users.items() if isinstance(all_users, dict) else enumerate(all_users)
+    for user_id, user_data in users_to_check:
+        # Saltar elementos None
+        if user_data is None:
+            continue
         if user_data.get('email') == test_email:
             print(f"🧹 Usuario encontrado: {user_id} (activo: {user_data.get('activo', True)})")
-            # Eliminar completamente (no soft delete)
-            users_ref.child(user_id).delete()
+            # Eliminar completamente (no soft delete) - convertir a string
+            users_ref.child(str(user_id)).delete()
             deleted_count += 1
 
 if deleted_count > 0:

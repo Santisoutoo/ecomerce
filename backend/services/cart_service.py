@@ -41,7 +41,7 @@ class CartService:
             db.Reference: Referencia al carrito del usuario
         """
         database = get_database()
-        return database.child('carts').child(user_id)
+        return database.child('carts').child(str(user_id))
 
     @staticmethod
     def _calculate_subtotal(unit_price: float, personalization_price: float, quantity: int) -> float:
@@ -59,18 +59,20 @@ class CartService:
         return (unit_price + personalization_price) * quantity
 
     @staticmethod
-    def _get_product_data(product_id: str) -> Optional[Dict]:
+    def _get_product_data(product_id) -> Optional[Dict]:
         """
         Obtiene los datos de un producto desde Firebase.
 
         Args:
-            product_id: ID del producto
+            product_id: ID del producto (int o str)
 
         Returns:
             Optional[Dict]: Datos del producto o None si no existe
         """
         database = get_database()
-        product_ref = database.child('products').child(product_id)
+        # Convertir a int si es string
+        prod_id = int(product_id) if isinstance(product_id, str) else product_id
+        product_ref = database.child('products').child(str(prod_id))
         return product_ref.get()
 
     @staticmethod
@@ -111,8 +113,8 @@ class CartService:
             if item_data is None:
                 continue
 
-            # Convertir product_id a string si viene de enumerate
-            product_id = str(product_id)
+            # Convertir product_id a int
+            product_id = int(product_id) if not isinstance(product_id, int) else product_id
 
             # Obtener datos del producto
             product_data = CartService._get_product_data(product_id)
@@ -192,8 +194,8 @@ class CartService:
             'personalization': item.personalization.dict() if item.personalization else None
         }
 
-        # Guardar item en Firebase usando product_id como clave
-        cart_ref.child('items').child(item.product_id).set(item_data)
+        # Guardar item en Firebase usando product_id como clave (convertir a string)
+        cart_ref.child('items').child(str(item.product_id)).set(item_data)
 
         # Actualizar totales del carrito (incluye user_email)
         CartService._update_cart_totals(user_id, user_email)
@@ -217,20 +219,23 @@ class CartService:
         )
 
     @staticmethod
-    def update_item(user_id: str, product_id: str, updates: CartItemUpdate) -> Optional[CartItem]:
+    def update_item(user_id, product_id, updates: CartItemUpdate) -> Optional[CartItem]:
         """
         Actualiza un item del carrito.
 
         Args:
-            user_id: ID del usuario
-            product_id: ID del producto (ahora es la clave del item)
+            user_id: ID del usuario (int o str)
+            product_id: ID del producto (int o str)
             updates: Datos a actualizar
 
         Returns:
             Optional[CartItem]: Item actualizado o None si no existe
         """
+        # Convertir IDs a int si es necesario
+        prod_id = int(product_id) if isinstance(product_id, str) else product_id
+
         cart_ref = CartService._get_cart_ref(user_id)
-        item_ref = cart_ref.child('items').child(product_id)
+        item_ref = cart_ref.child('items').child(str(prod_id))
 
         # Verificar que el item existe
         item_data = item_ref.get()
@@ -238,7 +243,7 @@ class CartService:
             return None
 
         # Obtener datos del producto
-        product_data = CartService._get_product_data(product_id)
+        product_data = CartService._get_product_data(prod_id)
         if not product_data:
             return None
 
@@ -276,9 +281,9 @@ class CartService:
                 personalization = Personalization(**updated_data['personalization'])
 
             return CartItem(
-                id=product_id,
+                id=prod_id,
                 user_id=updated_data.get('user_id', user_id),
-                product_id=product_id,
+                product_id=prod_id,
                 product_name=product_data.get('name', 'Producto desconocido'),
                 product_image=product_data.get('images', {}).get('main', ''),
                 team=product_data.get('team', ''),
@@ -295,19 +300,22 @@ class CartService:
         return None
 
     @staticmethod
-    def remove_item(user_id: str, product_id: str) -> bool:
+    def remove_item(user_id, product_id) -> bool:
         """
         Elimina un item del carrito.
 
         Args:
-            user_id: ID del usuario
-            product_id: ID del producto a eliminar
+            user_id: ID del usuario (int o str)
+            product_id: ID del producto a eliminar (int o str)
 
         Returns:
             bool: True si se eliminó correctamente, False si no existía
         """
+        # Convertir a int si es necesario
+        prod_id = int(product_id) if isinstance(product_id, str) else product_id
+
         cart_ref = CartService._get_cart_ref(user_id)
-        item_ref = cart_ref.child('items').child(product_id)
+        item_ref = cart_ref.child('items').child(str(prod_id))
 
         # Verificar que el item existe
         if not item_ref.get():

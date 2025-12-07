@@ -30,14 +30,16 @@ if not current_products:
 if isinstance(current_products, dict):
     products_list = list(current_products.items())
 else:
-    products_list = list(enumerate(current_products))
+    # Filtrar elementos None si es una lista
+    products_list = [(i, p) for i, p in enumerate(current_products) if p is not None]
 
 print(f"✅ Se encontraron {len(products_list)} productos")
 
 # Mostrar productos actuales
 print("\n📋 Productos actuales:")
 for old_id, product_data in products_list:
-    print(f"   - {old_id}: {product_data.get('name', 'Sin nombre')}")
+    if product_data:
+        print(f"   - {old_id}: {product_data.get('name', 'Sin nombre')}")
 
 # Confirmar migración
 print("\n" + "=" * 70)
@@ -57,11 +59,11 @@ new_products = {}
 for index, (old_id, product_data) in enumerate(products_list):
     new_id = index + 1  # Empezar desde 1 en lugar de 0
 
-    # Actualizar el campo 'id' interno
-    product_data['id'] = str(new_id)
+    # Actualizar el campo 'id' interno como int
+    product_data['id'] = new_id
 
-    # Guardar con nuevo ID
-    new_products[str(new_id)] = product_data
+    # Guardar con nuevo ID (como int)
+    new_products[new_id] = product_data
     print(f"   ✅ {old_id} → {new_id}: {product_data.get('name')}")
 
 # 2. Eliminar todos los productos antiguos
@@ -69,9 +71,10 @@ print("\n🗑️  Eliminando productos antiguos...")
 products_ref.delete()
 
 # 3. Guardar productos con nuevos IDs
-print("\n💾 Guardando productos con nuevos IDs...")
+print("\n💾 Guardando productos con nuevos IDs (int almacenado como campo)...")
 for new_id, product_data in new_products.items():
-    products_ref.child(new_id).set(product_data)
+    # Firebase requiere string como clave, pero el campo 'id' es int
+    products_ref.child(str(new_id)).set(product_data)
 
 print("\n" + "=" * 70)
 print("✅ MIGRACIÓN COMPLETADA EXITOSAMENTE")
@@ -81,17 +84,21 @@ print("=" * 70)
 print("\n🔍 Verificando migración...")
 migrated_products = products_ref.get()
 
+print(f"\n📦 Productos después de la migración:")
 if isinstance(migrated_products, dict):
     migrated_list = list(migrated_products.items())
 else:
-    migrated_list = list(enumerate(migrated_products))
+    migrated_list = [(i, p) for i, p in enumerate(migrated_products) if p is not None]
 
-print(f"\n📦 Productos después de la migración:")
-for product_id, product_data in migrated_list:
-    print(f"   - ID: {product_id}")
-    print(f"     Campo 'id': {product_data.get('id')}")
-    print(f"     Nombre: {product_data.get('name')}")
-    print()
+for product_id, product_data in migrated_list[:5]:  # Mostrar solo primeros 5
+    if product_data:
+        print(f"   - ID (clave): {product_id} (tipo: {type(product_id).__name__})")
+        print(f"     Campo 'id': {product_data.get('id')} (tipo: {type(product_data.get('id')).__name__})")
+        print(f"     Nombre: {product_data.get('name')}")
+        print()
+
+if len(migrated_list) > 5:
+    print(f"   ... y {len(migrated_list) - 5} productos más")
 
 print("=" * 70)
 print("RESUMEN")

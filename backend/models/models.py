@@ -284,9 +284,9 @@ class Personalization(BaseModel):
 
 class CartItem(BaseModel):
     """Modelo de item del carrito de compras."""
-    id: str = Field(..., description="ID único del item del carrito")
-    user_id: str = Field(..., description="ID del usuario")
-    product_id: str = Field(..., description="ID del producto")
+    id: int = Field(..., description="ID único del item del carrito")
+    user_id: int = Field(..., description="ID del usuario")
+    product_id: int = Field(..., description="ID del producto")
     product_name: str = Field(..., description="Nombre del producto")
     product_image: str = Field(..., description="URL de la imagen del producto")
     team: str = Field(..., description="Equipo del producto")
@@ -325,7 +325,7 @@ class CartItem(BaseModel):
 
 class CartItemCreate(BaseModel):
     """Modelo para añadir un item al carrito."""
-    product_id: str = Field(..., description="ID del producto")
+    product_id: int = Field(..., description="ID del producto")
     quantity: int = Field(default=1, gt=0, description="Cantidad")
     size: str = Field(..., description="Talla")
     personalization: Optional[Personalization] = Field(None, description="Datos de personalización")
@@ -340,7 +340,7 @@ class CartItemUpdate(BaseModel):
 
 class Cart(BaseModel):
     """Modelo completo del carrito de compras."""
-    user_id: str = Field(..., description="ID del usuario en Firebase Auth")
+    user_id: int = Field(..., description="ID del usuario")
     user_email: EmailStr = Field(..., description="Email del usuario en texto plano")
     items: List[CartItem] = Field(default_factory=list, description="Items del carrito")
     total_items: int = Field(default=0, ge=0, description="Total de items en el carrito")

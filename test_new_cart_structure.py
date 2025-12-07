@@ -27,7 +27,7 @@ print("\n📋 Limpiando datos previos...")
 existing_user = UserService.get_user_by_email(test_email, include_inactive=True)
 if existing_user:
     users_ref = UserService._get_users_ref()
-    users_ref.child(existing_user['user_id']).delete()
+    users_ref.child(str(existing_user['user_id'])).delete()
     print(f"✅ Usuario eliminado: {existing_user['user_id']}")
 
 # Crear usuario
@@ -58,11 +58,15 @@ if not products:
     print("❌ No hay productos en la base de datos")
     sys.exit(1)
 
-# Tomar los primeros 2 productos
-product_ids = list(products.keys())[:2]
+# Manejar tanto dict como list - tomar los primeros 2 productos
+products_to_test = []
+if isinstance(products, dict):
+    products_to_test = list(products.items())[:2]
+else:
+    # Si es lista, filtrar None y tomar los primeros 2
+    products_to_test = [(i, p) for i, p in enumerate(products) if p is not None][:2]
 
-for i, product_id in enumerate(product_ids):
-    product_data = products[product_id]
+for i, (product_id, product_data) in enumerate(products_to_test):
 
     # Crear item
     personalization = None
@@ -96,7 +100,12 @@ print(f"   - updated_at: {cart_data.get('updated_at')}")
 
 print(f"\n📦 Items:")
 items_dict = cart_data.get('items', {})
-for product_id, item_data in items_dict.items():
+# Manejar tanto dict como list
+items_to_show = items_dict.items() if isinstance(items_dict, dict) else enumerate(items_dict) if items_dict else []
+for product_id, item_data in items_to_show:
+    # Saltar elementos None
+    if item_data is None:
+        continue
     print(f"\n   📍 {product_id}/")
     print(f"      - user_id: {item_data.get('user_id')}")
     print(f"      - size: {item_data.get('size')}")
