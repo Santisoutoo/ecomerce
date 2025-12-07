@@ -107,6 +107,10 @@ class CartService:
         items_to_process = items_dict.items() if isinstance(items_dict, dict) else enumerate(items_dict) if items_dict else []
 
         for product_id, item_data in items_to_process:
+            # Saltar elementos None (pueden aparecer cuando Firebase convierte claves numéricas a lista)
+            if item_data is None:
+                continue
+
             # Convertir product_id a string si viene de enumerate
             product_id = str(product_id)
 
@@ -351,6 +355,10 @@ class CartService:
         items_values = items_dict.values() if isinstance(items_dict, dict) else items_dict if items_dict else []
 
         for item_data in items_values:
+            # Saltar elementos None (pueden aparecer cuando Firebase convierte claves numéricas a lista)
+            if item_data is None:
+                continue
+
             total_items += item_data.get('quantity', 0)
             subtotal += item_data.get('subtotal', 0.0)
 

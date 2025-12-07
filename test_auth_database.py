@@ -240,7 +240,7 @@ print("""
 
 📝 IMPORTANTE:
    - Las contraseñas se almacenan en texto plano
-   - Los user_id son secuenciales (0, 1, 2, 3...)
+   - Los user_id son secuenciales (1, 2, 3, 4...)
    - Los usuarios se guardan en Firebase Realtime Database en /users/{user_id}
    - El sistema usa "soft delete" (marca usuarios como inactivos)
 """)

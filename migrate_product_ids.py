@@ -52,9 +52,11 @@ if response.lower() not in ['si', 's', 'yes', 'y']:
 # Realizar migración
 print("\n🔄 Iniciando migración...")
 
-# 1. Guardar productos con nuevos IDs
+# 1. Guardar productos con nuevos IDs (empezando desde 1)
 new_products = {}
-for new_id, (old_id, product_data) in enumerate(products_list):
+for index, (old_id, product_data) in enumerate(products_list):
+    new_id = index + 1  # Empezar desde 1 en lugar de 0
+
     # Actualizar el campo 'id' interno
     product_data['id'] = str(new_id)
 
@@ -100,7 +102,7 @@ print(f"""
 📊 Estadísticas:
    - Productos migrados: {len(new_products)}
    - IDs antiguos: prod_001, prod_002, prod_003...
-   - IDs nuevos: 0, 1, 2, 3...
+   - IDs nuevos: 1, 2, 3, 4...
 
 ⚠️  IMPORTANTE:
    - Los carritos existentes pueden tener referencias a IDs antiguos

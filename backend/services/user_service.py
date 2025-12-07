@@ -33,7 +33,7 @@ class UserService:
     @staticmethod
     def _generate_user_id() -> str:
         """
-        Genera un ID secuencial para el usuario (0, 1, 2, 3...).
+        Genera un ID secuencial para el usuario (1, 2, 3, 4...).
 
         Returns:
             str: ID secuencial del usuario
@@ -42,11 +42,11 @@ class UserService:
         all_users = users_ref.get()
 
         if not all_users:
-            return "0"
+            return "1"
 
-        # Si es una lista, el siguiente ID es el largo de la lista
+        # Si es una lista, el siguiente ID es el largo de la lista + 1
         if isinstance(all_users, list):
-            return str(len(all_users))
+            return str(len(all_users) + 1)
 
         # Si es un diccionario, obtener todos los IDs numéricos y encontrar el máximo
         numeric_ids = []
@@ -58,7 +58,7 @@ class UserService:
                 continue
 
         if not numeric_ids:
-            return "0"
+            return "1"
 
         # Retornar el siguiente ID
         return str(max(numeric_ids) + 1)
