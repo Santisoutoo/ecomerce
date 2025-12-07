@@ -91,6 +91,31 @@ class UserService:
         return database.child('users')
 
     @staticmethod
+    def _create_user_cart(user_id: int, user_email: str):
+        """
+        Crea un carrito vacío para el usuario con el mismo ID.
+
+        Args:
+            user_id: ID del usuario (mismo que se usará para el carrito)
+            user_email: Email del usuario
+        """
+        database = get_database()
+        cart_ref = database.child('carts').child(str(user_id))
+
+        # Datos iniciales del carrito vacío
+        cart_data = {
+            "user_id": user_id,
+            "user_email": user_email,
+            "items": {},
+            "total_items": 0,
+            "subtotal": 0.0,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+
+        # Crear carrito en Firebase
+        cart_ref.set(cart_data)
+
+    @staticmethod
     def email_exists(email: str) -> bool:
         """
         Verifica si un email ya está registrado por un usuario activo.
@@ -173,6 +198,9 @@ class UserService:
         # Guardar en Firebase (convertir ID a string para Firebase)
         users_ref = UserService._get_users_ref()
         users_ref.child(str(user_id)).set(user_data)
+
+        # Crear carrito vacío para el usuario con el mismo ID
+        UserService._create_user_cart(user_id, email)
 
         # Retornar datos sin el password
         return {
