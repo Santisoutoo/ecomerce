@@ -103,7 +103,13 @@ class CartService:
         items = []
         items_dict = cart_data.get('items', {})
 
-        for product_id, item_data in items_dict.items():
+        # Manejar tanto dict como list
+        items_to_process = items_dict.items() if isinstance(items_dict, dict) else enumerate(items_dict) if items_dict else []
+
+        for product_id, item_data in items_to_process:
+            # Convertir product_id a string si viene de enumerate
+            product_id = str(product_id)
+
             # Obtener datos del producto
             product_data = CartService._get_product_data(product_id)
 
@@ -341,7 +347,10 @@ class CartService:
         total_items = 0
         subtotal = 0.0
 
-        for item_data in items_dict.values():
+        # Manejar tanto dict como list
+        items_values = items_dict.values() if isinstance(items_dict, dict) else items_dict if items_dict else []
+
+        for item_data in items_values:
             total_items += item_data.get('quantity', 0)
             subtotal += item_data.get('subtotal', 0.0)
 
