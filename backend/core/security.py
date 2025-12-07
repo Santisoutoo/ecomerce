@@ -87,13 +87,22 @@ async def get_current_user(
     # Decodificar JWT
     payload = decode_access_token(token)
 
-    user_id = payload.get("sub")  # Puede ser int o str
+    user_id = payload.get("sub")  # Es string en JWT
     email: str = payload.get("email")
 
     if user_id is None or email is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials"
+        )
+
+    # Convertir user_id de string a int
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID in token"
         )
 
     # Validar usuario en Firebase Realtime Database

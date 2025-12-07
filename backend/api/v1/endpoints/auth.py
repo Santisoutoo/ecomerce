@@ -48,9 +48,9 @@ async def signup(request: SignUpRequest):
             foto_perfil=request.foto_perfil
         )
 
-        # Generar token JWT
+        # Generar token JWT (sub debe ser string)
         access_token = create_access_token(
-            data={"sub": user['user_id'], "email": user['email']},
+            data={"sub": str(user['user_id']), "email": user['email']},
             expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         )
 
@@ -100,9 +100,9 @@ async def signin(request: SignInRequest):
                 detail="Invalid email or password"
             )
 
-        # Generar token JWT
+        # Generar token JWT (sub debe ser string)
         access_token = create_access_token(
-            data={"sub": user['user_id'], "email": user['email']},
+            data={"sub": str(user['user_id']), "email": user['email']},
             expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         )
 
@@ -213,7 +213,7 @@ async def upload_profile_picture(
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Sube una foto de perfil a Firebase Storage y devuelve la URL pública.
+    Sube una foto de perfil a Cloudinary y devuelve la URL pública.
 
     Args:
         file: Archivo de imagen a subir
@@ -227,6 +227,8 @@ async def upload_profile_picture(
         HTTPException 413: Si el archivo es demasiado grande
     """
     try:
+        from backend.config.cloudinary_config import upload_image
+
         # Validar tipo de archivo
         allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
         if file.content_type not in allowed_types:
@@ -245,27 +247,27 @@ async def upload_profile_picture(
             )
 
         # Generar nombre único para el archivo
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"profile_pictures/{current_user['uid']}_{uuid.uuid4()}{file_extension}"
+        public_id = f"user_{current_user['uid']}_{uuid.uuid4().hex[:8]}"
 
-        # Subir a Firebase Storage
-        bucket = get_storage_bucket()
-        blob = bucket.blob(unique_filename)
-        blob.upload_from_string(file_content, content_type=file.content_type)
-
-        # Hacer el archivo público
-        blob.make_public()
+        # Subir a Cloudinary
+        result = upload_image(
+            file_content=file_content,
+            folder="profile_pictures",
+            public_id=public_id
+        )
 
         # Obtener URL pública
-        public_url = blob.public_url
+        public_url = result.get('secure_url') or result.get('url')
 
         # Actualizar el perfil del usuario con la URL de la foto
         UserService.update_user(current_user['uid'], foto_perfil=public_url)
 
         return {
             "url": public_url,
-            "filename": unique_filename,
-            "size_mb": round(file_size_mb, 2)
+            "cloudinary_id": result.get('public_id'),
+            "size_mb": round(file_size_mb, 2),
+            "width": result.get('width'),
+            "height": result.get('height')
         }
 
     except HTTPException:

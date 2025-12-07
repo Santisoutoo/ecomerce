@@ -214,6 +214,7 @@ def render_login_tab():
                 st.session_state[SESSION_KEYS["user_id"]] = data["user_id"]
                 st.session_state[SESSION_KEYS["user_email"]] = data["email"]
                 st.session_state[SESSION_KEYS["es_admin"]] = user_data.get("es_admin", False) if user_success else False
+                st.session_state['user_foto_perfil'] = user_data.get("foto_perfil", "") if user_success else ""
                 st.session_state[SESSION_KEYS["show_welcome"]] = True
 
                 st.success("✅ Sesión iniciada correctamente")
@@ -352,6 +353,7 @@ def render_register_tab():
                 st.session_state[SESSION_KEYS["user_id"]] = data["user_id"]
                 st.session_state[SESSION_KEYS["user_email"]] = data["email"]
                 st.session_state[SESSION_KEYS["es_admin"]] = user_data.get("es_admin", False) if user_success else False
+                st.session_state['user_foto_perfil'] = user_data.get("foto_perfil", "") if user_success else ""
                 st.session_state[SESSION_KEYS["show_welcome"]] = True
 
                 # Limpiar el archivo de perfil del session state

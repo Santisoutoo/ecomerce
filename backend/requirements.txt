@@ -16,3 +16,6 @@ passlib[bcrypt]==1.7.4
 # Utilidades
 python-dotenv==1.0.0
 python-multipart==0.0.6
+
+# Cloudinary para almacenamiento de imágenes
+cloudinary>=1.44.0

@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import List, Dict
 from config import SESSION_KEYS
 from services.product_service import ProductService
+from services.auth_service import AuthService
 
 
 def render_account_page():
@@ -64,24 +65,49 @@ def render_account_header(user_email: str, user_id: str):
     </style>
     """, unsafe_allow_html=True)
 
-    # Estadísticas rápidas
-    col1, col2, col3, col4 = st.columns(4)
+    # Perfil y estadísticas
+    col_avatar, col_stats = st.columns([1, 4])
 
-    orders = st.session_state.get('orders', [])
-    user_points = st.session_state.get('user_points', 0)
-    favorites = st.session_state.get('favorites', [])
+    with col_avatar:
+        # Mostrar avatar del usuario
+        user_foto = st.session_state.get('user_foto_perfil', '')
+        if user_foto:
+            st.image(user_foto, width=120)
+        else:
+            st.markdown("""
+            <div style="
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 3rem;
+            ">
+                👤
+            </div>
+            """, unsafe_allow_html=True)
 
-    with col1:
-        st.metric("📧 Email", user_email)
+    with col_stats:
+        # Estadísticas rápidas
+        col1, col2, col3, col4 = st.columns(4)
 
-    with col2:
-        st.metric("📦 Pedidos Totales", len(orders))
+        orders = st.session_state.get('orders', [])
+        user_points = st.session_state.get('user_points', 0)
+        favorites = st.session_state.get('favorites', [])
 
-    with col3:
-        st.metric("🎁 Puntos Disponibles", user_points)
+        with col1:
+            st.metric("📧 Email", user_email)
 
-    with col4:
-        st.metric("❤️ Favoritos", len(favorites))
+        with col2:
+            st.metric("📦 Pedidos Totales", len(orders))
+
+        with col3:
+            st.metric("🎁 Puntos Disponibles", user_points)
+
+        with col4:
+            st.metric("❤️ Favoritos", len(favorites))
 
     st.markdown("---")
 
@@ -536,6 +562,72 @@ def render_settings_section(user_email: str, user_id: str):
 
     with col2:
         st.text_input("ID de Usuario", value=user_id, disabled=True)
+
+    st.markdown("---")
+
+    # Foto de perfil
+    st.markdown("#### 📸 Foto de Perfil")
+
+    col_img, col_upload = st.columns([1, 2])
+
+    with col_img:
+        # Mostrar foto actual
+        user_foto = st.session_state.get('user_foto_perfil', '')
+        if user_foto:
+            st.image(user_foto, width=150, caption="Foto actual")
+        else:
+            st.markdown("""
+            <div style="
+                width: 150px;
+                height: 150px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 4rem;
+            ">
+                👤
+            </div>
+            """, unsafe_allow_html=True)
+
+    with col_upload:
+        st.markdown("**Subir nueva foto**")
+        st.caption("Formatos: JPG, PNG. Tamaño máximo: 5MB")
+
+        uploaded_file = st.file_uploader(
+            "Selecciona una imagen",
+            type=["jpg", "jpeg", "png"],
+            key="profile_picture_upload",
+            label_visibility="collapsed"
+        )
+
+        if uploaded_file is not None:
+            # Validar tamaño (máximo 5MB)
+            file_size_mb = uploaded_file.size / (1024 * 1024)
+
+            if file_size_mb > 5:
+                st.error("❌ La imagen es demasiado grande. Máximo 5MB.")
+            else:
+                # Mostrar botón para confirmar subida
+                if st.button("📤 Subir Foto", type="primary", use_container_width=True):
+                    with st.spinner("Subiendo imagen..."):
+                        # Obtener token de acceso
+                        access_token = st.session_state.get(SESSION_KEYS["access_token"])
+
+                        if not access_token:
+                            st.error("❌ No se encontró el token de acceso. Por favor, inicia sesión nuevamente.")
+                        else:
+                            # Subir imagen
+                            success, url, error = AuthService.upload_profile_picture(uploaded_file, access_token)
+
+                            if success and url:
+                                # Actualizar session state
+                                st.session_state['user_foto_perfil'] = url
+                                st.success("✅ Foto de perfil actualizada correctamente")
+                                st.rerun()
+                            else:
+                                st.error(f"❌ {error or 'Error al subir la imagen'}")
 
     st.markdown("---")
 
