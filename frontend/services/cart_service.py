@@ -92,6 +92,11 @@ class CartService:
         if CartService.CART_TOTAL_KEY not in st.session_state:
             st.session_state[CartService.CART_TOTAL_KEY] = 0.0
 
+        # No sincronizar si el carrito acaba de ser limpiado
+        if st.session_state.get('cart_just_cleared', False):
+            st.session_state['cart_just_cleared'] = False
+            return
+
         # Sincronizar con Firebase si el usuario está autenticado
         user_id = CartService._get_user_id()
         if user_id and FIREBASE_AVAILABLE:

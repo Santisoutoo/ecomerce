@@ -6,6 +6,7 @@ Muestra los detalles del pedido confirmado y opciones de navegación.
 import streamlit as st
 from datetime import datetime
 from config import SESSION_KEYS
+from services.cart_service import CartService
 
 
 def render_order_confirmation_page():
@@ -36,6 +37,11 @@ def render_order_confirmation_page():
     # Mostrar confirmación exitosa
     render_success_header(order_number)
 
+    # Botones de acción principales
+    render_action_buttons()
+
+    st.markdown("---")
+
     # Layout de 2 columnas
     col_left, col_right = st.columns([2, 1], gap="large")
 
@@ -44,9 +50,6 @@ def render_order_confirmation_page():
 
     with col_right:
         render_order_summary(order)
-
-    # Botones de acción
-    render_action_buttons()
 
 
 def render_success_header(order_number: str):
@@ -335,22 +338,36 @@ def render_action_buttons():
     """
     st.markdown("<br>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
+    # Botón principal grande para volver al inicio
+    if st.button("🏠 Volver al Inicio", type="primary", use_container_width=True, key="btn_home_main"):
+        # Limpiar el carrito completamente
+        try:
+            CartService.clear_cart()
+        except Exception as e:
+            print(f"Error al limpiar carrito: {e}")
 
-    with col1:
-        if st.button("🏠 Volver al Inicio", type="primary", use_container_width=True):
-            # Limpiar datos de checkout
-            if 'checkout_data' in st.session_state:
-                del st.session_state['checkout_data']
-            if 'checkout_step' in st.session_state:
-                del st.session_state['checkout_step']
-            if 'last_order_number' in st.session_state:
-                del st.session_state['last_order_number']
+        # Forzar limpieza del carrito en session_state
+        st.session_state[CartService.CART_KEY] = []
+        st.session_state[CartService.CART_COUNT_KEY] = 0
+        st.session_state[CartService.CART_TOTAL_KEY] = 0.0
 
-            st.session_state[SESSION_KEYS["current_page"]] = "home"
-            st.rerun()
+        # Marcar que el carrito fue limpiado manualmente (para evitar recargar de Firebase)
+        st.session_state['cart_just_cleared'] = True
 
-    with col2:
-        if st.button("📋 Ver Mis Pedidos", type="secondary", use_container_width=True):
-            st.session_state[SESSION_KEYS["current_page"]] = "account"
-            st.rerun()
+        # Limpiar datos de checkout
+        if 'checkout_data' in st.session_state:
+            del st.session_state['checkout_data']
+        if 'checkout_step' in st.session_state:
+            del st.session_state['checkout_step']
+        if 'last_order_number' in st.session_state:
+            del st.session_state['last_order_number']
+
+        st.session_state[SESSION_KEYS["current_page"]] = "home"
+        st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Botón secundario para ver pedidos
+    if st.button("📋 Ver Mis Pedidos", type="secondary", use_container_width=True, key="btn_orders"):
+        st.session_state[SESSION_KEYS["current_page"]] = "account"
+        st.rerun()
