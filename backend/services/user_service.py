@@ -155,6 +155,7 @@ class UserService:
 
         # Preparar datos del usuario
         user_data = {
+            "id": user_id,  # ID como int
             "email": email,
             "password": password,  # Contraseña en texto plano
             "nombre": nombre,
