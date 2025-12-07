@@ -227,7 +227,7 @@ print("""
 📋 Funcionalidades verificadas:
    1. ✅ Crear nuevos usuarios
    2. ✅ Verificar emails duplicados
-   3. ✅ Autenticar con contraseña (bcrypt)
+   3. ✅ Autenticar con contraseña (texto plano)
    4. ✅ Rechazar contraseñas incorrectas
    5. ✅ Obtener usuario por ID
    6. ✅ Obtener usuario por email
@@ -239,8 +239,8 @@ print("""
 🎉 El sistema de autenticación con base de datos funciona correctamente!
 
 📝 IMPORTANTE:
-   - Las contraseñas se hashean con bcrypt
-   - Los user_id son únicos de 28 caracteres (similar a Firebase Auth)
+   - Las contraseñas se almacenan en texto plano
+   - Los user_id son secuenciales (0, 1, 2, 3...)
    - Los usuarios se guardan en Firebase Realtime Database en /users/{user_id}
    - El sistema usa "soft delete" (marca usuarios como inactivos)
 """)

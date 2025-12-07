@@ -5,8 +5,6 @@ Gestiona autenticación, registro y operaciones de usuarios SIN Firebase Authent
 
 from typing import Optional
 from datetime import datetime
-import uuid
-import bcrypt
 from firebase_admin import db
 from backend.config.firebase_config import get_database
 
@@ -19,7 +17,7 @@ class UserService:
     /users/
         {user_id}/
             email: str
-            password_hash: str  # Contraseña hasheada con bcrypt
+            password: str  # Contraseña en texto plano
             nombre: str
             apellidos: str
             telefono: str
@@ -35,43 +33,49 @@ class UserService:
     @staticmethod
     def _generate_user_id() -> str:
         """
-        Genera un ID único para el usuario con formato similar a Firebase Auth.
+        Genera un ID secuencial para el usuario (0, 1, 2, 3...).
 
         Returns:
-            str: ID único del usuario (28 caracteres)
+            str: ID secuencial del usuario
         """
-        # Generar un ID similar a los de Firebase Auth (28 caracteres alfanuméricos)
-        return uuid.uuid4().hex[:14] + uuid.uuid4().hex[:14]
+        users_ref = UserService._get_users_ref()
+        all_users = users_ref.get()
+
+        if not all_users:
+            return "0"
+
+        # Si es una lista, el siguiente ID es el largo de la lista
+        if isinstance(all_users, list):
+            return str(len(all_users))
+
+        # Si es un diccionario, obtener todos los IDs numéricos y encontrar el máximo
+        numeric_ids = []
+        for user_id in all_users.keys():
+            try:
+                numeric_ids.append(int(user_id))
+            except ValueError:
+                # Ignorar IDs no numéricos (por si hay datos legacy)
+                continue
+
+        if not numeric_ids:
+            return "0"
+
+        # Retornar el siguiente ID
+        return str(max(numeric_ids) + 1)
 
     @staticmethod
-    def _hash_password(password: str) -> str:
+    def _verify_password(password: str, stored_password: str) -> bool:
         """
-        Hashea una contraseña usando bcrypt.
+        Verifica si una contraseña coincide con la almacenada.
 
         Args:
-            password: Contraseña en texto plano
-
-        Returns:
-            str: Contraseña hasheada
-        """
-        # Generar salt y hashear
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-        return hashed.decode('utf-8')
-
-    @staticmethod
-    def _verify_password(password: str, password_hash: str) -> bool:
-        """
-        Verifica si una contraseña coincide con el hash.
-
-        Args:
-            password: Contraseña en texto plano
-            password_hash: Hash almacenado
+            password: Contraseña ingresada
+            stored_password: Contraseña almacenada
 
         Returns:
             bool: True si coincide, False si no
         """
-        return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        return password == stored_password
 
     @staticmethod
     def _get_users_ref() -> db.Reference:
@@ -101,8 +105,11 @@ class UserService:
         if not all_users:
             return False
 
+        # Manejar tanto dict como list
+        users_values = all_users.values() if isinstance(all_users, dict) else all_users
+
         # Buscar email solo en usuarios activos
-        for user_data in all_users.values():
+        for user_data in users_values:
             if user_data.get('email') == email and user_data.get('activo', True):
                 return True
 
@@ -138,16 +145,13 @@ class UserService:
         if UserService.email_exists(email):
             raise ValueError("Email already registered")
 
-        # Generar ID único
+        # Generar ID único secuencial
         user_id = UserService._generate_user_id()
-
-        # Hashear contraseña
-        password_hash = UserService._hash_password(password)
 
         # Preparar datos del usuario
         user_data = {
             "email": email,
-            "password_hash": password_hash,
+            "password": password,  # Contraseña en texto plano
             "nombre": nombre,
             "apellidos": apellidos,
             "telefono": telefono or "",
@@ -164,7 +168,7 @@ class UserService:
         users_ref = UserService._get_users_ref()
         users_ref.child(user_id).set(user_data)
 
-        # Retornar datos sin el password_hash
+        # Retornar datos sin el password
         return {
             "user_id": user_id,
             "email": email,
@@ -202,9 +206,9 @@ class UserService:
                     return None
 
                 # Verificar contraseña
-                password_hash = user_data.get('password_hash')
-                if password_hash and UserService._verify_password(password, password_hash):
-                    # Retornar datos del usuario (sin password_hash)
+                stored_password = user_data.get('password')
+                if stored_password and UserService._verify_password(password, stored_password):
+                    # Retornar datos del usuario (sin password)
                     return {
                         "user_id": user_id,
                         "email": user_data.get('email'),
@@ -266,15 +270,18 @@ class UserService:
         if not all_users:
             return None
 
+        # Manejar tanto dict como list
+        users_to_check = all_users.items() if isinstance(all_users, dict) else enumerate(all_users)
+
         # Buscar usuario por email (solo activos por defecto)
-        for user_id, user_data in all_users.items():
+        for user_id, user_data in users_to_check:
             if user_data.get('email') == email:
                 # Si no incluimos inactivos, verificar que esté activo
                 if not include_inactive and not user_data.get('activo', True):
                     continue
 
                 return {
-                    "user_id": user_id,
+                    "user_id": str(user_id),
                     "email": user_data.get('email'),
                     "nombre": user_data.get('nombre'),
                     "apellidos": user_data.get('apellidos'),
@@ -337,16 +344,13 @@ class UserService:
             return False
 
         # Verificar contraseña actual
-        password_hash = user_data.get('password_hash')
-        if not password_hash or not UserService._verify_password(old_password, password_hash):
+        stored_password = user_data.get('password')
+        if not stored_password or not UserService._verify_password(old_password, stored_password):
             return False
 
-        # Hashear nueva contraseña
-        new_password_hash = UserService._hash_password(new_password)
-
-        # Actualizar en Firebase
+        # Actualizar en Firebase con nueva contraseña
         users_ref.child(user_id).update({
-            'password_hash': new_password_hash
+            'password': new_password
         })
 
         return True
