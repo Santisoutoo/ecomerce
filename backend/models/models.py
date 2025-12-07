@@ -285,8 +285,9 @@ class Personalization(BaseModel):
 class CartItem(BaseModel):
     """Modelo de item del carrito de compras."""
     id: int = Field(..., description="ID único del item del carrito")
+    cart_id: int = Field(..., description="ID del carrito al que pertenece (clave foránea)")
     user_id: int = Field(..., description="ID del usuario")
-    product_id: int = Field(..., description="ID del producto")
+    product_id: int = Field(..., description="ID del producto/camiseta (clave foránea a products)")
     product_name: str = Field(..., description="Nombre del producto")
     product_image: str = Field(..., description="URL de la imagen del producto")
     team: str = Field(..., description="Equipo del producto")

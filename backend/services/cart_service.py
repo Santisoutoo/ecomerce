@@ -134,6 +134,7 @@ class CartService:
             # Crear CartItem
             cart_item = CartItem(
                 id=product_id,  # Ahora el ID es el product_id
+                cart_id=int(user_id) if isinstance(user_id, str) else user_id,  # ID del carrito (mismo que user_id)
                 user_id=item_data.get('user_id', user_id),
                 product_id=product_id,
                 product_name=product_data.get('name', 'Producto desconocido'),
@@ -186,7 +187,9 @@ class CartService:
 
         # Crear datos del item (estructura simplificada)
         item_data = {
+            'cart_id': int(user_id) if isinstance(user_id, str) else user_id,  # ID del carrito (mismo que user_id)
             'user_id': user_id,
+            'product_id': item.product_id,  # ID del producto/camiseta (clave foránea)
             'size': item.size,
             'quantity': item.quantity,
             'subtotal': subtotal,
@@ -203,6 +206,7 @@ class CartService:
         # Retornar CartItem creado
         return CartItem(
             id=item.product_id,  # ID es el product_id
+            cart_id=int(user_id) if isinstance(user_id, str) else user_id,  # ID del carrito (mismo que user_id)
             user_id=user_id,
             product_id=item.product_id,
             product_name=product_data['name'],
@@ -282,6 +286,7 @@ class CartService:
 
             return CartItem(
                 id=prod_id,
+                cart_id=int(user_id) if isinstance(user_id, str) else user_id,  # ID del carrito (mismo que user_id)
                 user_id=updated_data.get('user_id', user_id),
                 product_id=prod_id,
                 product_name=product_data.get('name', 'Producto desconocido'),
