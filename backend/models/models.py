@@ -4,7 +4,7 @@ Define esquemas de validación para productos, usuarios, pedidos, etc.
 """
 
 from pydantic import BaseModel, EmailStr, Field, validator
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 from datetime import datetime
 from enum import Enum
 
@@ -285,8 +285,8 @@ class Personalization(BaseModel):
 class CartItem(BaseModel):
     """Modelo de item del carrito de compras."""
     id: int = Field(..., description="ID único del item del carrito")
-    cart_id: int = Field(..., description="ID del carrito al que pertenece (clave foránea)")
-    user_id: int = Field(..., description="ID del usuario")
+    cart_id: Union[int, str] = Field(..., description="ID del carrito al que pertenece (clave foránea)")
+    user_id: Union[int, str] = Field(..., description="ID del usuario")
     product_id: int = Field(..., description="ID del producto/camiseta (clave foránea a products)")
     product_name: str = Field(..., description="Nombre del producto")
     product_image: str = Field(..., description="URL de la imagen del producto")
@@ -341,7 +341,7 @@ class CartItemUpdate(BaseModel):
 
 class Cart(BaseModel):
     """Modelo completo del carrito de compras."""
-    user_id: int = Field(..., description="ID del usuario")
+    user_id: Union[int, str] = Field(..., description="ID del usuario")
     user_email: EmailStr = Field(..., description="Email del usuario en texto plano")
     items: List[CartItem] = Field(default_factory=list, description="Items del carrito")
     total_items: int = Field(default=0, ge=0, description="Total de items en el carrito")
