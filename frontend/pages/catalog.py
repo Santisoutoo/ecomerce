@@ -86,20 +86,6 @@ def render_filters_sidebar() -> dict:
 
     st.markdown("---")
 
-    # Filtro por categoría
-    st.markdown("#### 👕 Categoría")
-    categories = ProductService.get_categories()
-    category_options = ["Todas"] + categories
-    selected_category = st.selectbox(
-        "Selecciona categoría",
-        options=category_options,
-        key="catalog_category",
-        label_visibility="collapsed"
-    )
-    filters['category'] = selected_category if selected_category != "Todas" else None
-
-    st.markdown("---")
-
     # Filtro por rango de precio
     st.markdown("#### 💰 Precio")
     price_range = st.slider(
@@ -207,7 +193,6 @@ def get_filtered_products(filters: dict) -> List[Dict]:
         products = ProductService.get_products_by_sport(
             sport_id=filters['sport'],
             team=filters.get('team'),
-            categoria=filters.get('category'),
             limit=100
         )
     else:
@@ -220,10 +205,6 @@ def get_filtered_products(filters: dict) -> List[Dict]:
     # Filtro por equipo (si no se aplicó en get_products_by_sport)
     if filters.get('team') and not filters.get('sport'):
         filtered = [p for p in filtered if p.get('equipo') == filters['team']]
-
-    # Filtro por categoría (si no se aplicó en get_products_by_sport)
-    if filters.get('category') and not filters.get('sport'):
-        filtered = [p for p in filtered if p.get('categoria') == filters['category']]
 
     # Filtro por precio
     price_min = filters.get('price_min', 0)
@@ -317,7 +298,6 @@ def clear_filters():
         'catalog_search',
         'catalog_sport',
         'catalog_team',
-        'catalog_category',
         'catalog_price_range',
         'catalog_stock',
         'catalog_sort'
