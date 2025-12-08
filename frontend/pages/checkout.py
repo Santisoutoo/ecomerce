@@ -6,6 +6,7 @@ Proceso de finalización de compra con dirección de envío y pago simulado.
 import streamlit as st
 from datetime import datetime
 from config import SESSION_KEYS
+from services.cart_service import CartService
 
 
 def render_checkout_page():
@@ -25,8 +26,13 @@ def render_checkout_page():
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 if st.button("✓ CONTINUAR", type="primary", use_container_width=True, key="continue_after_modal"):
-                    # Ahora sí, limpiar carrito y datos de checkout
-                    st.session_state['cart'] = []
+                    # Limpiar carrito (session_state + Firebase)
+                    CartService.clear_cart()
+
+                    # Marcar que el carrito fue limpiado para evitar resincronización
+                    st.session_state['cart_just_cleared'] = True
+
+                    # Limpiar datos de checkout
                     st.session_state['checkout_data'] = None
                     st.session_state['checkout_step'] = 1
                     st.session_state['applied_points_discount'] = 0
